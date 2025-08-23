@@ -1,0 +1,172 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>RECN Concierge Calculator (v4.1)</title>
+<style>
+  :root{
+    --bg1:#4a90e2;
+    --bg2:#7b68ee;
+    --card:rgba(255,255,255,.15);
+    --card2:rgba(255,255,255,.10);
+    --gold:#ffd700;
+    --text:#ffffff;
+  }
+  body{margin:0;font-family:sans-serif;color:var(--text);
+    background:linear-gradient(135deg,var(--bg1),var(--bg2));}
+  .wrap{max-width:1100px;margin:24px auto;padding:32px;}
+  h2,h3{margin:0 0 12px}
+  .panel{background:var(--card);padding:24px;border-radius:20px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media (max-width:800px){ .grid2{grid-template-columns:1fr} }
+  label.top{display:flex;flex-direction:column;gap:6px}
+  input[type="number"]{border-radius:12px;border:1.5px solid rgba(255,255,255,.6);
+    padding:12px;background:rgba(255,255,255,.28);color:#fff;font-size:16px}
+  input::placeholder{color:#fff;opacity:.9}
+  .egline{opacity:.9;font-size:.85em}
+  .gridCards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
+  .cardLbl{display:flex;align-items:center;gap:10px;cursor:pointer;
+    padding:12px 14px;border-radius:14px;background:var(--card2);
+    border:2px solid transparent;transition:all .15s ease}
+  .cardLbl.on{border-color:var(--gold);background:rgba(255,215,0,.12)}
+  .cardLbl input{width:18px;height:18px;accent-color:var(--gold)}
+  .pill{color:#90ee90}
+  .results{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:10px}
+  .tile{text-align:center;background:var(--card2);padding:20px;border-radius:12px;border:2px solid rgba(255,255,255,.3)}
+  .big{font-size:1.6em;font-weight:800;color:var(--gold)}
+  .cta{text-align:center;background:var(--card);padding:20px;border-radius:16px;margin-top:18px}
+  .cta a{display:inline-block;padding:12px 20px;margin:6px;border-radius:28px;
+    color:#fff;text-decoration:none;font-weight:700;box-shadow:0 6px 18px rgba(0,0,0,.25)}
+  .btn-red{background:#ff4757}
+</style>
+</head>
+<body>
+<div class="wrap panel" id="recn-calc">
+  <h2 style="text-align:center">🧮 FREE RECN CONCIERGE CALCULATOR</h2>
+  <p style="text-align:center;opacity:.9">Estimate potential value lift, service value, and commission savings.</p>
+
+  <div class="grid2">
+    <label class="top">🏡 Home Value
+      <input id="homeValue" type="number" placeholder="e.g., 475000"/>
+      <small class="egline">Examples: 450000 • 625000 • 825000</small>
+    </label>
+    <label class="top">📐 Square Footage
+      <input id="sqft" type="number" placeholder="e.g., 2100"/>
+      <small class="egline">Examples: 1600 • 2400 • 3200</small>
+    </label>
+  </div>
+
+  <h3>⭐ Current Condition</h3>
+  <small id="condHelper" style="display:block;margin-bottom:8px;opacity:.9"></small>
+  <div id="cond" class="gridCards">
+    <label class="cardLbl"><input type="checkbox" data-pct="0.03" data-target="2">✨ Excellent (+3%)</label>
+    <label class="cardLbl"><input type="checkbox" data-pct="0.05" data-target="3">👍 Good (+5%)</label>
+    <label class="cardLbl"><input type="checkbox" data-pct="0.08" data-target="4">🔧 Fair (+8%)</label>
+    <label class="cardLbl"><input type="checkbox" data-pct="0.12" data-target="5">🔨 Needs Work (+12%)</label>
+  </div>
+
+  <h3>🛠️ Concierge Services</h3>
+  <div id="services" class="gridCards">
+    <label class="cardLbl"><input type="checkbox" data-val="3500">🎨 Staging ($3,500)</label>
+    <label class="cardLbl"><input type="checkbox" data-val="2500">🎨 Interior Painting ($2,500)</label>
+    <label class="cardLbl"><input type="checkbox" data-val="1800">🏠 Exterior Painting ($1,800)</label>
+    <label class="cardLbl"><input type="checkbox" data-val="1200">🔧 Repairs ($1,200)</label>
+    <label class="cardLbl"><input type="checkbox" data-val="1500">🌿 Landscaping ($1,500)</label>
+    <label class="cardLbl"><input type="checkbox" data-val="500">📸 Photos ($500)</label>
+    <label class="cardLbl"><input type="checkbox" data-val="5000">🍳 Kitchen Updates ($5,000)</label>
+    <label class="cardLbl"><input type="checkbox" data-val="3000">🛁 Bathroom Updates ($3,000)</label>
+  </div>
+
+  <div class="grid2" style="margin-top:14px">
+    <label class="top">Market Commission %<input id="commission" type="number" value="3"></label>
+    <label class="top">RECN Savings %<input id="savings" type="number" value="20"></label>
+  </div>
+
+  <h3 style="margin-top:20px">📊 Results</h3>
+  <div class="results">
+    <div class="tile"><div id="svcSum" class="big">$0</div><div>Service Value</div></div>
+    <div class="tile"><div id="condLift" class="big">$0</div><div>Value Increase</div></div>
+    <div class="tile"><div id="bonus" class="big">$0</div><div>Bonus (4+ services)</div></div>
+    <div class="tile"><div id="commSave" class="big">$0</div><div>Commission Savings</div></div>
+    <div class="tile" style="grid-column:1/-1"><div id="total" class="big">$0</div><div>Total Benefit</div></div>
+  </div>
+
+  <h4>💡 How this is calculated</h4>
+  <ol>
+    <li>Home value increase = Home Value × applied condition % (scaled by services).</li>
+    <li>Service value = sum of checked services.</li>
+    <li>Bonus = +2% of Home Value if 4+ services are selected.</li>
+    <li>Commission savings = (Home Value × Commission %) × RECN Savings %.</li>
+    <li>Total = all of the above.</li>
+  </ol>
+
+  <div class="cta">
+    <h3>🚀 Ready to connect with your RECN concierge?</h3>
+    <a class="btn-red" href="tel:7022135555">📞 Call (702) 213-5555</a>
+    <a class="btn-red" href="mailto:info@recngroup.com">📧 Email Your Concierge</a>
+  </div>
+</div>
+
+<script>
+(function(){
+  const $ = (s)=>document.querySelector(s);
+  const $$ = (s)=>Array.from(document.querySelectorAll(s));
+  const fmt=n=>isFinite(n)?n.toLocaleString(undefined,{style:'currency',currency:'USD',maximumFractionDigits:0}):"$0";
+  const hvEl=$("#homeValue"), commEl=$("#commission"), saveEl=$("#savings");
+  const res={svc:$("#svcSum"),cond:$("#condLift"),bonus:$("#bonus"),comm:$("#commSave"),total:$("#total")};
+  const helper=$("#condHelper");
+
+  function services(){
+    let sum=0,cnt=0;
+    $$("#services input").forEach(cb=>{if(cb.checked){sum+=+cb.dataset.val;cnt++;}});
+    return {sum,cnt};
+  }
+  function condition(){
+    let max=0,target=0;
+    $$("#cond input").forEach(cb=>{
+      cb.parentElement.classList.toggle("on",cb.checked);
+      if(cb.checked){
+        const pct=+cb.dataset.pct;
+        if(pct>max){max=pct;target=+cb.dataset.target;}
+      }
+    });
+    return {max,target};
+  }
+
+  function calc(){
+    const hv=+hvEl.value||0;
+    const {sum, cnt}=services();
+    const cond=condition();
+    const comm=(+commEl.value||3)/100;
+    const save=(+saveEl.value||20)/100;
+    const engagement=cond.target?Math.min(1,cnt/cond.target):0;
+    const effPct=cond.max*engagement;
+
+    const lift=hv*effPct;
+    const bonus=cnt>=4?hv*0.02:0;
+    const commSv=hv*comm*save;
+    const total=lift+sum+bonus+commSv;
+
+    res.svc.textContent=fmt(sum);
+    res.cond.textContent=fmt(lift);
+    res.bonus.textContent=fmt(bonus);
+    res.comm.textContent=fmt(commSv);
+    res.total.textContent=fmt(total);
+
+    if(cond.max){
+      const cap=(cond.max*100).toFixed(0);
+      const applied=(effPct*100).toFixed(1).replace(/\.0$/,'');
+      helper.textContent=`Selected condition up to ${cap}%. You’ve chosen ${cnt} service(s); need ${cond.target} for full ${cap}%. Applying ${applied}% now.`;
+    }else{
+      helper.textContent="Pick a condition, then select services. More services = closer to that condition’s maximum potential.";
+    }
+  }
+
+  document.addEventListener("input",calc);
+  calc();
+})();
+</script>
+</body>
+</html>
