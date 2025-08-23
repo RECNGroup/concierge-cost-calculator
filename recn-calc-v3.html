@@ -1,0 +1,249 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>RECN Concierge Calculator</title>
+<style>
+  :root{
+    --bg1:#4a90e2;
+    --bg2:#7b68ee;
+    --card:rgba(255,255,255,.15);
+    --card2:rgba(255,255,255,.10);
+    --gold:#ffd700;
+    --text:#ffffff;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    color:var(--text);
+    background:linear-gradient(135deg,var(--bg1),var(--bg2));
+  }
+  .wrap{max-width:1100px;margin:24px auto;padding:32px;}
+  h2,h3{margin:0 0 12px}
+  .panel{
+    background:var(--card);
+    padding:24px;
+    border-radius:20px;
+    box-shadow:0 15px 35px rgba(0,0,0,.1);
+  }
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media (max-width:800px){ .grid2{grid-template-columns:1fr} }
+  label.top{display:flex;flex-direction:column;gap:6px}
+  input[type="number"]{
+    border-radius:12px;border:1.5px solid rgba(255,255,255,.6);
+    padding:14px;background:rgba(255,255,255,.28);color:#fff;outline:none;font-size:18px;
+  }
+  input::placeholder{color:#fff;opacity:.95;font-weight:700;letter-spacing:.2px}
+  .egline{opacity:.96;font-weight:700;letter-spacing:.2px}
+  .egline b{padding:2px 8px;background:rgba(0,0,0,.22);border-radius:999px}
+  h4{margin:18px 0 8px}
+  .gridCards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
+  .cardLbl{
+    display:flex;align-items:center;gap:12px;cursor:pointer;
+    padding:14px 16px;border-radius:14px;background:var(--card2);
+    border:2px solid transparent;box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);
+    transition:transform .05s ease,border-color .15s ease,background .15s ease;
+    position:relative;user-select:none;
+  }
+  .cardLbl:hover{transform:translateY(-1px)}
+  .cardLbl.on{border-color:var(--gold);background:rgba(255,215,0,.12);box-shadow:inset 0 0 0 1px rgba(255,215,0,.35)}
+  .cardLbl input{width:20px;height:20px;accent-color:var(--gold)}
+  .checkmark{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-weight:800;opacity:0;transition:opacity .15s ease}
+  .cardLbl.on .checkmark{opacity:1}
+  .pill{color:#90ee90;margin-left:6px}
+  .results{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:10px}
+  .tile{text-align:center;background:var(--card2);padding:20px;border-radius:12px;border:2px solid rgba(255,255,255,.3)}
+  .big{font-size:1.8em;font-weight:800;color:var(--gold)}
+  .toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0 2px}
+  .linkbtn{background:transparent;border:none;color:#fff;opacity:.95;text-decoration:underline;cursor:pointer;padding:0;font-weight:600}
+  .linkbtn:hover{opacity:1}
+  .cta{
+    text-align:center;background:var(--card);padding:24px;border-radius:16px;margin-top:18px;
+  }
+  .cta a{
+    display:inline-block;padding:14px 24px;margin:6px;border-radius:28px;
+    color:#fff;text-decoration:none;font-weight:700;box-shadow:0 6px 18px rgba(0,0,0,.25)
+  }
+  .btn-red{background:#ff4757}
+  .btn-green{background:#2ecc71}
+  ol.calc-steps{margin:0;padding-left:18px;line-height:1.55}
+</style>
+</head>
+<body>
+  <div class="wrap panel" id="recn-calc">
+    <h2 style="text-align:center">🧮 FREE RECN CONCIERGE CALCULATOR</h2>
+    <p style="text-align:center;opacity:.95">Estimate potential value lift, service package value, and typical commission savings.</p>
+
+    <div class="panel" style="background:rgba(255,255,255,.15)">
+      <h3 style="text-align:center">📋 STEP 1: Your Home Details</h3>
+
+      <div class="grid2" style="margin-top:10px">
+        <label class="top">🏡 Your Home Value
+          <input id="recn-home-value" type="number" min="0" placeholder="e.g., 475000" />
+          <small class="egline">Examples: <b>450000</b> · <b>625000</b> · <b>825000</b></small>
+        </label>
+        <label class="top">📐 Square Footage (optional)
+          <input id="recn-sqft" type="number" min="0" placeholder="e.g., 2100" />
+          <small class="egline">Examples: <b>1600</b> · <b>2400</b> · <b>3200</b></small>
+        </label>
+      </div>
+
+      <div class="toolbar">
+        <span style="opacity:.95">⭐ Select Your Home's Current Condition</span>
+        <button id="clear-cond" class="linkbtn" type="button">Clear</button>
+      </div>
+      <div id="cond" class="gridCards">
+        <label class="cardLbl"><input type="checkbox" data-pct="0.03"> <span><strong>✨ Excellent</strong> <span class="pill">(+3% value)</span></span><span class="checkmark">✓</span></label>
+        <label class="cardLbl"><input type="checkbox" data-pct="0.05"> <span><strong>👍 Good</strong> <span class="pill">(+5% value)</span></span><span class="checkmark">✓</span></label>
+        <label class="cardLbl"><input type="checkbox" data-pct="0.08"> <span><strong>🔧 Fair</strong> <span class="pill">(+8% value)</span></span><span class="checkmark">✓</span></label>
+        <label class="cardLbl"><input type="checkbox" data-pct="0.12"> <span><strong>🔨 Needs Work</strong> <span class="pill">(+12% value)</span></span><span class="checkmark">✓</span></label>
+      </div>
+
+      <div class="toolbar">
+        <span style="opacity:.95">🛠️ RECN Concierge Services (check all that apply)</span>
+        <button id="clear-svc" class="linkbtn" type="button">Clear</button>
+      </div>
+      <div id="services" class="gridCards">
+        <label class="cardLbl"><input type="checkbox" data-val="3500"> <span><strong>🎨 Professional Staging</strong> ($3,500)</span><span class="checkmark">✓</span></label>
+        <label class="cardLbl"><input type="checkbox" data-val="2500"> <span><strong>🎨 Interior Painting</strong> ($2,500)</span><span class="checkmark">✓</span></label>
+        <label class="cardLbl"><input type="checkbox" data-val="1800"> <span><strong>🏠 Exterior Painting</strong> ($1,800)</span><span class="checkmark">✓</span></label>
+        <label class="cardLbl"><input type="checkbox" data-val="1200"> <span><strong>🔧 Repairs &amp; Touch-ups</strong> ($1,200)</span><span class="checkmark">✓</span></label>
+        <label class="cardLbl"><input type="checkbox" data-val="1500"> <span><strong>🌿 Landscaping</strong> ($1,500)</span><span class="checkmark">✓</span></label>
+        <label class="cardLbl"><input type="checkbox" data-val="500">  <span><strong>📸 Pro Photos</strong> ($500)</span><span class="checkmark">✓</span></label>
+        <label class="cardLbl"><input type="checkbox" data-val="5000"> <span><strong>🍳 Kitchen Updates</strong> ($5,000)</span><span class="checkmark">✓</span></label>
+        <label class="cardLbl"><input type="checkbox" data-val="3000"> <span><strong>🛁 Bathroom Updates</strong> ($3,000)</span><span class="checkmark">✓</span></label>
+      </div>
+
+      <div class="grid2" style="align-items:flex-end;margin-top:12px">
+        <label class="top" style="font-size:.95em">Assumed Market Commission %
+          <input id="recn-commission-rate" type="number" min="0" max="10" step="0.1" value="3">
+        </label>
+        <label class="top" style="font-size:.95em">RECN Savings on Commission %
+          <input id="recn-savings-rate" type="number" min="0" max="100" step="1" value="20">
+        </label>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:20px;background:rgba(255,255,255,.15)">
+      <h3 style="text-align:center">📊 STEP 2: Your RECN Savings Estimate</h3>
+      <div class="results">
+        <div class="tile"><div id="recn-service-sum" class="big">$0</div><div>Selected Services Value</div></div>
+        <div class="tile"><div id="recn-cond-lift" class="big">$0</div><div>Estimated Value Increase</div></div>
+        <div class="tile"><div id="recn-bonus" class="big">$0</div><div>Service Bonus (4+ services)</div></div>
+        <div class="tile"><div id="recn-commission-savings" class="big">$0</div><div>Commission Savings</div></div>
+        <div class="tile" style="grid-column:1/-1;"><div id="recn-total-benefit" class="big">$0</div><div>Estimated Total Benefit</div></div>
+      </div>
+
+      <h4 style="margin:12px 0 6px;color:#ffd700">💡 How this is calculated</h4>
+      <ol class="calc-steps">
+        <li>Home value increase = Home Value × selected condition %.</li>
+        <li>Service value = sum of checked services.</li>
+        <li>Bonus = +2% of Home Value if 4+ services are selected.</li>
+        <li>Commission savings = (Home Value × Market Commission %) × RECN Savings %.</li>
+        <li>Total benefit = Value increase + Service value + Bonus + Commission savings.</li>
+      </ol>
+    </div>
+
+    <div class="cta">
+      <h3 style="margin:0 0 8px">🚀 Ready to connect with your RECN concierge?</h3>
+      <p style="margin:0 0 12px;opacity:.95">Get a free consultation and personalized calculation.</p>
+      <a class="btn-red" href="tel:7022135555">📞 Call (702) 213-5555</a>
+      <a class="btn-red" href="mailto:info@recngroup.com">📧 Email Your Concierge</a>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const $  = (s,r=document)=>r.querySelector(s);
+  const $$ = (s,r=document)=>Array.from(r.querySelectorAll(s));
+  const fmt = n => (isFinite(n)? n.toLocaleString(undefined,{style:'currency',currency:'USD',maximumFractionDigits:0}) : '$0');
+
+  const root = document.getElementById('recn-calc');
+  if(!root) return;
+
+  const hvEl = $('#recn-home-value',root);
+  const commEl = $('#recn-commission-rate',root);
+  const saveEl = $('#recn-savings-rate',root);
+
+  const resService = $('#recn-service-sum',root);
+  const resCond    = $('#recn-cond-lift',root);
+  const resBonus   = $('#recn-bonus',root);
+  const resComm    = $('#recn-commission-savings',root);
+  const resTotal   = $('#recn-total-benefit',root);
+
+  function num(el){ const v=parseFloat((el.value||'').toString().replace(/,/g,'')); return isFinite(v)?v:0; }
+  function pct(el,def){ const v=parseFloat(el.value); const clamped=isFinite(v)?Math.max(0,Math.min(100,v)):def; return clamped/100; }
+
+  function servicesSum(){
+    let sum=0,cnt=0;
+    $$('#services input[type="checkbox"]',root).forEach(cb=>{ if(cb.checked){ sum+= (parseFloat(cb.dataset.val||'0')||0); cnt++; } });
+    return {sum,cnt};
+  }
+  // Condition % = HIGHEST selected checkbox (not sum)
+  function conditionPct(){
+    let max=0;
+    $$('#cond input[type="checkbox"]',root).forEach(cb=>{
+      cb.parentElement.classList.toggle('on', cb.checked);
+      if(cb.checked){ max = Math.max(max, parseFloat(cb.dataset.pct||'0')||0); }
+    });
+    return max;
+  }
+
+  function calc(){
+    const hv = num(hvEl);
+    const {sum:svcSum, cnt:svcCnt} = servicesSum();
+    const cp = conditionPct();
+    const cmP = pct(commEl,3);
+    const svP = pct(saveEl,20);
+
+    const lift   = hv * cp;
+    const bonus  = svcCnt>=4 ? hv*0.02 : 0;
+    const commSv = hv * cmP * svP;
+    const total  = lift + svcSum + bonus + commSv;
+
+    resService.textContent = fmt(svcSum);
+    resCond.textContent    = fmt(lift);
+    resBonus.textContent   = fmt(bonus);
+    resComm.textContent    = fmt(commSv);
+    resTotal.textContent   = fmt(total);
+  }
+
+  // Toggle cards on label clicks (supports unselect)
+  root.addEventListener('click', (e)=>{
+    const lbl = e.target.closest('.cardLbl');
+    if(!lbl || !root.contains(lbl)) return;
+    const inp = lbl.querySelector('input');
+    if(!inp) return;
+    if(e.target !== inp){
+      inp.checked = !inp.checked;
+      inp.dispatchEvent(new Event('change',{bubbles:true}));
+    }
+  }, true);
+
+  // Clear buttons
+  $('#clear-cond', root)?.addEventListener('click', ()=>{
+    $$('#cond input[type="checkbox"]',root).forEach(cb=>cb.checked=false);
+    calc();
+  });
+  $('#clear-svc', root)?.addEventListener('click', ()=>{
+    $$('#services input[type="checkbox"]',root).forEach(cb=>cb.checked=false);
+    calc();
+  });
+
+  ['input','change','keyup'].forEach(ev=>{
+    root.addEventListener(ev, (e)=>{
+      const t=e.target;
+      if(!t) return;
+      if(t.matches('#recn-home-value,#recn-commission-rate,#recn-savings-rate')) calc();
+      if(t.matches('#services input[type="checkbox"], #cond input[type="checkbox"]')) calc();
+    }, true);
+  });
+
+  calc();
+})();
+</script>
+</body>
+</html>
