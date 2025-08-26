@@ -1,140 +1,202 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Vegas Relocation ROI Calculator</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#dc3545" />
+  <meta name="theme-color" content="#dc3545">
   <style>
     :root{
+      --bg:#f5f7f9;
+      --card:#ffffff;
+      --text:#1f2937;
+      --muted:#eef2f7;
+      --border:rgba(13,27,42,.12);
       --red:#dc3545;
-      --red-dark:#a52733;
-      --orange:#fd7e14;
-      --muted:#f8f9fa;
-      --text:#222;
-      --success:#d4edda;
-      --card:#fff;
-      --border:rgba(0,0,0,.12);
+      --green:#28a745;
+      --cyan:#17a2b8;
+      --purple:#6f42c1;
+      --shadow:0 10px 30px rgba(13,27,42,.10);
+      --radius:16px;
+      --radius-sm:10px;
     }
     *{box-sizing:border-box}
-    body{margin:0; background:var(--muted); color:var(--text); font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif; line-height:1.5;}
-    .container{max-width:980px; margin:24px auto; padding:0 16px;}
-    .hero{background:linear-gradient(135deg,var(--red) 0%, var(--orange) 100%); color:#fff; border-radius:18px; padding:28px; box-shadow:0 10px 30px rgba(0,0,0,.15);}
-    .hero h1{margin:0 0 6px}
-    .card{background:var(--card); border-radius:16px; border:1px solid var(--border); box-shadow:0 10px 30px rgba(0,0,0,.08); overflow:hidden;}
-    .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:14px;}
-    .pad{padding:18px}
-    label{font-weight:600; display:block; margin:6px 0}
-    input{width:100%; border:1px solid #ccc; border-radius:8px; padding:10px 12px;}
-    .hint{font-size:12px; color:#666; margin-top:4px}
-    .btn{display:inline-block; background:var(--red); color:#fff; padding:12px 18px; border-radius:10px; text-decoration:none; font-weight:700; border:none; cursor:pointer}
-    .btn:active{transform:translateY(1px)}
-    .btn.secondary{background:#6c757d}
-    .result{background:var(--success); border:1px solid #b7e0bc; border-radius:14px; padding:16px; font-size:16px}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+      background:var(--bg);
+      color:var(--text);
+      line-height:1.5;
+    }
+    .container{
+      max-width: 1100px;
+      margin: 16px auto 32px; /* small top margin; no hero */
+      padding: 0 16px;
+    }
+    h1{font-size: clamp(22px, 3vw, 36px); margin: 0 0 12px; font-weight: 800;}
+    p.lead{margin:0 0 18px; color:#516173}
+    .grid-3{display:grid; grid-template-columns: repeat(3, 1fr); gap:16px}
+    .grid-2{display:grid; grid-template-columns: repeat(2, 1fr); gap:16px}
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+    label{display:block; font-weight:700; margin: 6px 0 6px; font-size:18px;}
+    small.help{display:block; margin-top:6px; color:#6b7280}
+    input[type=number]{
+      width:100%;
+      appearance: textfield;
+      -moz-appearance: textfield;
+      font-size:18px;
+      padding:14px 12px;
+      border:1px solid #cbd5e1;
+      border-radius:12px;
+      background:#fff;
+      color:var(--text);
+      outline:none;
+      box-shadow: inset 0 1px 0 rgba(13,27,42,.04);
+    }
+    input[type=number]:focus{border-color:#94a3b8; box-shadow: 0 0 0 3px rgba(99,102,241,.12)}
+    .actions{display:flex; gap:12px; margin-top:14px; align-items:center; flex-wrap:wrap}
+    button{
+      border:0;
+      padding:12px 18px;
+      border-radius:10px;
+      font-weight:800;
+      cursor:pointer;
+      box-shadow: var(--shadow);
+      color:#fff;
+    }
+    .btn-red{background:var(--red)}
+    .btn-grey{background:#6c757d}
+    .result{
+      display:none;
+      margin-top:16px;
+      border-radius:12px;
+      background:#e8f7ef;
+      border:1px solid #b7e4c7;
+      padding:16px;
+    }
+    .result.show{display:block}
     .result strong{font-size:20px}
-    .footer{margin:26px 0 6px; font-size:12px; color:#666; text-align:center}
-    .mono{font-variant-numeric:tabular-nums}
+    footer{margin-top:24px; text-align:center; color:#718096; font-size:13px}
+    @media (max-width: 900px){
+      .grid-3{grid-template-columns:1fr}
+      .grid-2{grid-template-columns:1fr}
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="hero card">
-      <h1>Vegas Relocation ROI Calculator</h1>
-      <p>Estimate annual ROI for your Las Vegas relocation program. Defaults mirror a 500-employee tech company relocating 25 hires/year from California.</p>
-    </div>
+    <h1>Vegas Relocation ROI Calculator</h1>
+    <p class="lead">Estimate the annual ROI of your Las Vegas relocation program. Adjust values to fit your company.</p>
 
-    <div class="card pad" style="margin-top:16px">
-      <div class="grid">
-        <div>
-          <label for="hires">Annual Relocations (hires)</label>
-          <input id="hires" type="number" value="25" min="1" />
-        </div>
-        <div>
-          <label for="pkg">Avg Relocation Package ($)</label>
-          <input id="pkg" type="number" value="35000" min="0" step="100" />
-          <div class="hint">Moving, housing, trips, services</div>
-        </div>
-        <div>
-          <label for="admin">Admin/Program Cost ($/yr)</label>
-          <input id="admin" type="number" value="25000" min="0" step="500" />
-          <div class="hint">Internal admin + vendors (if any)</div>
-        </div>
+    <div class="grid-3">
+      <div class="card">
+        <label for="hires">Annual Relocations (hires)</label>
+        <input type="number" id="hires" min="0" step="1" value="25">
       </div>
-
-      <h3 style="margin:18px 0 6px">Per-Hire Annual Returns</h3>
-      <div class="grid">
-        <div>
-          <label for="salarySav">Salary Arbitrage Savings ($)</label>
-          <input id="salarySav" type="number" value="50000" min="0" step="500" />
-          <div class="hint">Lower comp vs. CA/NY</div>
-        </div>
-        <div>
-          <label for="turnSav">Retention Improvement ($)</label>
-          <input id="turnSav" type="number" value="18000" min="0" step="500" />
-          <div class="hint">Reduced turnover cost per hire</div>
-        </div>
-        <div>
-          <label for="recruitSav">Recruitment Acceleration ($)</label>
-          <input id="recruitSav" type="number" value="8000" min="0" step="500" />
-          <div class="hint">Faster time-to-fill, offer acceptance</div>
-        </div>
-        <div>
-          <label for="taxSav">Tax Benefit ($)</label>
-          <input id="taxSav" type="number" value="7000" min="0" step="500" />
-          <div class="hint">Federal deductibility + credits</div>
-        </div>
+      <div class="card">
+        <label for="avgpkg">Avg Relocation Package ($)</label>
+        <input type="number" id="avgpkg" min="0" step="100" value="35000">
+        <small class="help">Moving, housing, trips, services</small>
       </div>
-
-      <div style="margin-top:18px">
-        <button class="btn" id="calcBtn">Calculate ROI</button>
-        <button class="btn secondary" id="resetBtn" style="margin-left:8px">Reset</button>
-      </div>
-
-      <div id="out" class="result" style="margin-top:16px; display:none">
-        <div><strong class="mono" id="roiPct">—%</strong> estimated annual ROI</div>
-        <div class="mono" id="netGain">Net gain: —</div>
-        <div class="mono" id="totReturn">Total returns: —</div>
-        <div class="mono" id="totInvest">Total investment: —</div>
-        <div class="mono" id="payback">Payback period: — months</div>
+      <div class="card">
+        <label for="admin">Admin/Program Cost ($/yr)</label>
+        <input type="number" id="admin" min="0" step="500" value="25000">
+        <small class="help">Internal admin + vendors (if any)</small>
       </div>
     </div>
 
-    <p class="footer">Estimates only, not tax/legal advice. Adjust values to match your company data.</p>
+    <h2 style="margin:18px 0 10px; font-size:24px;">Per-Hire Annual Returns</h2>
+    <div class="grid-3">
+      <div class="card">
+        <label for="salary">Salary Arbitrage Savings ($)</label>
+        <input type="number" id="salary" min="0" step="100" value="50000">
+        <small class="help">Lower comp vs. CA/NY</small>
+      </div>
+      <div class="card">
+        <label for="retention">Retention Improvement ($)</label>
+        <input type="number" id="retention" min="0" step="100" value="18000">
+        <small class="help">Reduced turnover cost per hire</small>
+      </div>
+      <div class="card">
+        <label for="recruit">Recruitment Acceleration ($)</label>
+        <input type="number" id="recruit" min="0" step="100" value="8000">
+        <small class="help">Faster time-to-fill, offer acceptance</small>
+      </div>
+      <div class="card">
+        <label for="tax">Tax Benefit ($)</label>
+        <input type="number" id="tax" min="0" step="100" value="7000">
+        <small class="help">Federal deductibility + credits</small>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn-red" id="calc">Calculate ROI</button>
+      <button class="btn-grey" id="reset">Reset</button>
+    </div>
+
+    <div id="result" class="result">
+      <div><strong><span id="roiPct">—</span>% estimated annual ROI</strong></div>
+      <div style="margin-top:8px;">
+        <div>Net gain: <strong id="net">$—</strong></div>
+        <div>Total returns: <strong id="returns">$—</strong></div>
+        <div>Total investment: <strong id="invest">$—</strong></div>
+        <div>Payback period: <strong id="payback">— months</strong></div>
+      </div>
+    </div>
+
+    <footer>Estimates only, not tax/legal advice. Adjust values to match your company data.</footer>
   </div>
 
   <script>
-    const $ = id => document.getElementById(id);
-    const fmt = n => n.toLocaleString(undefined, {style:'currency', currency:'USD', maximumFractionDigits:0});
+    const fmt = (n)=> n.toLocaleString(undefined,{maximumFractionDigits:0});
+    const $ = (id)=> document.getElementById(id);
 
-    function calc() {
-      const hires       = +$('hires').value || 0;
-      const pkg         = +$('pkg').value || 0;
-      const admin       = +$('admin').value || 0;
+    function calc(){
+      const hires = +$('hires').value || 0;
+      const avgpkg = +$('avgpkg').value || 0;
+      const admin = +$('admin').value || 0;
+      const salary = +$('salary').value || 0;
+      const retention = +$('retention').value || 0;
+      const recruit = +$('recruit').value || 0;
+      const tax = +$('tax').value || 0;
 
-      const salarySav   = +$('salarySav').value || 0;
-      const turnSav     = +$('turnSav').value || 0;
-      const recruitSav  = +$('recruitSav').value || 0;
-      const taxSav      = +$('taxSav').value || 0;
+      const invest = (avgpkg * hires) + admin;
+      const perHireReturn = salary + retention + recruit + tax;
+      const returns = perHireReturn * hires;
 
-      const perHireReturn = salarySav + turnSav + recruitSav + taxSav;
-      const totalReturn   = hires * perHireReturn;
-      const totalInvest   = hires * pkg + admin;
-      const net           = totalReturn - totalInvest;
-      const roiPct        = totalInvest > 0 ? (net / totalInvest) * 100 : 0;
-      const payback       = totalReturn > 0 ? (12 * totalInvest) / totalReturn : 0;
+      const net = returns - invest;
+      const roi = invest > 0 ? (net / invest) * 100 : 0;
+      const paybackMonths = returns > 0 ? (invest / returns) * 12 : 0;
 
-      $('out').style.display = 'block';
-      $('roiPct').textContent = (roiPct).toFixed(0) + '%';
-      $('netGain').textContent = 'Net gain: ' + fmt(net);
-      $('totReturn').textContent = 'Total returns: ' + fmt(totalReturn);
-      $('totInvest').textContent = 'Total investment: ' + fmt(totalInvest);
-      $('payback').textContent = 'Payback period: ' + (payback).toFixed(1) + ' months';
+      $('roiPct').textContent = Math.round(roi);
+      $('net').textContent = '$' + fmt(net);
+      $('returns').textContent = '$' + fmt(returns);
+      $('invest').textContent = '$' + fmt(invest);
+      $('payback').textContent = (paybackMonths>0 ? (Math.round(paybackMonths*10)/10) : 0) + ' months';
+
+      $('result').classList.add('show');
     }
 
-    $('calcBtn').addEventListener('click', calc);
-    $('resetBtn').addEventListener('click', () => { location.reload(); });
-    // Auto-calc on load with defaults
-    calc();
+    function reset(){
+      $('hires').value = 25;
+      $('avgpkg').value = 35000;
+      $('admin').value = 25000;
+      $('salary').value = 50000;
+      $('retention').value = 18000;
+      $('recruit').value = 8000;
+      $('tax').value = 7000;
+      $('result').classList.remove('show');
+    }
+
+    $('calc').addEventListener('click', calc);
+    $('reset').addEventListener('click', reset);
   </script>
 </body>
 </html>
