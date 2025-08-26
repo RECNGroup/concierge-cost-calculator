@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>RECN Nevada ROI Calculator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0d1b2a">
+  <style>
+    :root{
+      --navy:#0d1b2a;
+      --navy-2:#14273d;
+      --gold:#d4af37;
+      --gold-dark:#b89018;
+      --muted:#f5f7fb;
+      --success:#d1f0da;
+      --text:#1d1f24;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; background:var(--muted); color:var(--text); font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+      line-height:1.5;
+    }
+    .container{max-width:980px;margin:24px auto;padding:0 16px;}
+    .card{
+      background:#fff; border-radius:16px; box-shadow:0 10px 30px rgba(13,27,42,.12); overflow:hidden;
+      border:1px solid rgba(13,27,42,.06);
+    }
+    header.hero{
+      background:linear-gradient(135deg,var(--navy), var(--navy-2));
+      color:#fff; padding:22px 20px; display:flex; align-items:center; gap:16px;
+    }
+    .hero img.logo{height:40px;width:auto;filter:drop-shadow(0 2px 4px rgba(0,0,0,.3));}
+    .hero .title{font-size:20px;font-weight:700;letter-spacing:.4px}
+    .hero .badge{margin-left:auto; background:var(--gold); color:#111; padding:6px 10px; border-radius:999px; font-weight:700; font-size:12px; border:1px solid rgba(0,0,0,.08)}
+    .content{padding:24px}
+    h1{margin:0 0 6px 0; font-size:24px; color:var(--navy)}
+    p.sub{margin:0 0 18px 0; color:#3b4350}
+    form label{display:block; font-weight:700; margin:14px 0 6px 0; color:#2a2f39}
+    input[type=number]{
+      width:100%; padding:12px 12px; border:1px solid #d9dbe3; border-radius:10px; font-size:16px; background:#fff;
+      outline:none; transition:box-shadow .15s,border-color .15s;
+    }
+    input[type=number]:focus{ border-color:var(--gold); box-shadow:0 0 0 3px rgba(212,175,55,.25) }
+    .grid{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+    @media (max-width:720px){ .grid{grid-template-columns:1fr} }
+    .btn{
+      display:inline-block; width:100%; padding:14px 18px; margin-top:18px;
+      background:var(--gold); color:#111; border:none; font-weight:800; letter-spacing:.3px; border-radius:12px; cursor:pointer;
+      text-align:center; text-decoration:none;
+      transition:transform .05s ease, box-shadow .2s ease, background .2s ease;
+      box-shadow:0 8px 18px rgba(212,175,55,.25);
+    }
+    .btn:hover{ background:var(--gold-dark); transform:translateY(-1px); box-shadow:0 12px 24px rgba(212,175,55,.3) }
+    .result{
+      display:none; margin-top:22px; padding:18px; border-radius:12px; background:var(--success); border:1px solid #b6e6c4;
+      text-align:center;
+    }
+    .result h2{margin:0 0 8px 0; color:#0c5a2a}
+    .result .kpis{display:flex; gap:14px; flex-wrap:wrap; justify-content:center}
+    .kpi{background:#fff; border:1px solid #cfe8d6; padding:12px 16px; border-radius:10px; min-width:220px}
+    .kpi strong{display:block; font-size:20px; color:#114b2e}
+    footer{padding:18px 0; text-align:center; color:#6b7280; font-size:13px}
+    .meta{font-size:12px; color:#6b7280; margin-top:10px}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <header class="hero">
+        <img class="logo" alt="RECN logo" src="https://cdn.lofty.com/image/fs/400919269340348/website/139352/cmsbuild/202585_f0e789113f0b4c6b.png">
+        <div class="title">RECN Nevada ROI Calculator</div>
+        <div class="badge">Concierge Benefits</div>
+      </header>
+      <div class="content">
+        <h1>Estimate Your Employee Housing Benefit ROI</h1>
+        <p class="sub">Plug in a few assumptions to model savings from reduced turnover when you add RECN housing benefits.</p>
+
+        <form id="roiForm" onsubmit="return false;">
+          <div class="grid">
+            <div>
+              <label>Number of Employees</label>
+              <input type="number" id="employees" placeholder="500" min="1">
+            </div>
+            <div>
+              <label>Annual Turnover Rate (%)</label>
+              <input type="number" id="turnover" placeholder="15" min="0" max="100" step="0.1">
+            </div>
+            <div>
+              <label>Average Replacement Cost ($)</label>
+              <input type="number" id="replacement" placeholder="25000" min="0" step="100">
+            </div>
+            <div>
+              <label>Annual Housing Benefit Budget ($)</label>
+              <input type="number" id="budget" placeholder="150000" min="0" step="100">
+            </div>
+          </div>
+
+          <button class="btn" type="button" onclick="calculateROI()">Calculate ROI</button>
+
+          <div id="result" class="result">
+            <h2>Estimated Impact</h2>
+            <div class="kpis">
+              <div class="kpi">
+                <span>Annual ROI</span>
+                <strong id="roiPct">—</strong>
+              </div>
+              <div class="kpi">
+                <span>Annual Savings</span>
+                <strong id="savingsUSD">—</strong>
+              </div>
+              <div class="kpi">
+                <span>Payback Period</span>
+                <strong id="payback">—</strong>
+              </div>
+            </div>
+            <div class="meta">Model assumes a 30% reduction in turnover among eligible roles. Adjust inputs to fit your org.</div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <footer>© 2025 Real Estate Concierge Network — Nevada Division</footer>
+  </div>
+
+<script>
+function valOrPlaceholder(elId, fallback){
+  var el = document.getElementById(elId);
+  if(!el) return fallback;
+  var v = el.value && el.value.trim() ? el.value.trim() : el.getAttribute('placeholder');
+  var n = parseFloat((v || '').replace(/[, $]/g,''));
+  return isFinite(n) ? n : fallback;
+}
+function fmtUSD(n){
+  try{ return n.toLocaleString(undefined,{style:'currency',currency:'USD',maximumFractionDigits:0}); }
+  catch(e){ return '$' + Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,','); }
+}
+function calculateROI(){
+  var employees   = valOrPlaceholder('employees', 500);
+  var turnover    = valOrPlaceholder('turnover', 15) / 100;
+  var replacement = valOrPlaceholder('replacement', 25000);
+  var budget      = valOrPlaceholder('budget', 150000);
+
+  var separations = employees * turnover;
+  var reduction   = 0.30; // assumption; tune if you have internal data
+  var savedRepl   = separations * reduction;
+  var savings     = savedRepl * replacement;
+
+  var net         = savings - budget;
+  var roiPct      = budget > 0 ? (net / budget) * 100 : 0;
+  var payMonths   = savings > 0 ? (budget / savings) * 12 : Infinity;
+
+  document.getElementById('roiPct').textContent = Math.round(roiPct) + '%';
+  document.getElementById('savingsUSD').textContent = fmtUSD(savings);
+  document.getElementById('payback').textContent = (isFinite(payMonths) ? payMonths.toFixed(1)+' months' : '—');
+
+  var box = document.getElementById('result');
+  box.style.display = 'block';
+  box.scrollIntoView({behavior:'smooth', block:'start'});
+}
+</script>
+</body>
+</html>
