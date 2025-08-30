@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Las Vegas Portfolio Analyzer | RECN</title>
+  <meta name="description" content="Comprehensive analysis of your Las Vegas real estate portfolio performance, including cap rate, cash flow, cash-on-cash, ROE, and appreciation CAGR." />
+  <style>
+    :root{
+      --brand:#dc3545; /* vegas red */
+      --brand2:#28a745; /* green */
+      --teal:#17a2b8; /* teal */
+      --purple:#6f42c1;
+      --ink:#1b1f23;
+      --muted:#6c757d;
+      --bg:#f7f9fb;
+      --card:#ffffff;
+      --line:#e5e7eb;
+      --ok:#28a745;
+      --bad:#c82333;
+      --radius:14px;
+      --shadow:0 4px 14px rgba(0,0,0,.08);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color:var(--ink);
+      background:var(--bg);
+      line-height:1.5;
+    }
+    a { color: var(--teal); text-decoration: none; }
+    .wrap{ max-width:1100px; margin:0 auto; padding: clamp(16px, 2vw, 28px); }
+    header.hero{
+      background: linear-gradient(135deg, var(--brand) 0%, #c82333 50%, #b21f2d 100%);
+      color:#fff; padding: clamp(22px, 3vw, 34px);
+      border-radius: var(--radius); box-shadow: var(--shadow); margin: 18px 0 22px;
+    }
+    header.hero h1{ margin:0 0 6px; font-size: clamp(22px, 3.2vw, 34px); letter-spacing:.2px; }
+    header.hero p{ margin:6px 0 0; opacity:.95 }
+    .grid{ display:grid; grid-template-columns: 1fr; gap: clamp(14px, 2.4vw, 24px); }
+    .card{ background:var(--card); border:1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+    .card .pad{ padding: clamp(16px, 2.4vw, 24px); }
+    h2,h3{ margin-top:0; }
+    .muted{ color: var(--muted); }
+    .pill{ display:inline-block; padding:6px 10px; border-radius:999px; background:#ffe8ea; color:#b21f2d; font-weight:800; font-size:12px; border:1px solid #f3c8cd; }
+    .row{ display:grid; grid-template-columns: 1fr 220px; align-items:center; gap: 12px; margin: 10px 0; }
+    @media (max-width: 760px){ .row{ grid-template-columns: 1fr; } }
+    label{ font-weight:600; }
+    .sublabel{ display:block; color:var(--muted); font-weight:500; font-size: 12px; }
+    input[type=number], input[type=text], select, input[type=month]{
+      width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:#fff; font-size: 15px;
+    }
+    .actions{ display:flex; gap:10px; flex-wrap: wrap; margin-top: 8px; }
+    .btn{ display:inline-flex; align-items:center; justify-content:center; gap:8px; border:1px solid transparent; background:var(--brand); color:#fff; font-weight:800; padding:12px 16px; border-radius:10px; cursor:pointer; }
+    .btn.secondary{ background:#fff; color:var(--teal); border-color: var(--teal); }
+    .btn.light{ background:#fff; color:var(--ink); border-color: var(--line); }
+    .btn.success{ background: var(--brand2); }
+    .btn:active{ transform: translateY(1px); }
+    .tableWrap{ overflow:auto; border:1px solid var(--line); border-radius: 12px; }
+    table{ width:100%; border-collapse: collapse; }
+    th, td{ border-top:1px solid var(--line); padding:10px; text-align:left; }
+    th{ background:#fafafa; font-size:13px; position:sticky; top:0; z-index:1; }
+    .results{ display:grid; gap:12px; grid-template-columns: repeat(4, 1fr); margin-top: 8px; }
+    @media (max-width: 960px){ .results{ grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 520px){ .results{ grid-template-columns: 1fr; } }
+    .stat{ border:1px solid var(--line); border-radius:12px; padding:14px; background: #fff; }
+    .stat h4{ margin:0; font-size:12px; color:var(--muted); letter-spacing:.4px; text-transform: uppercase;}
+    .stat .val{ font-size: clamp(20px, 2.6vw, 28px); margin-top: 4px; font-weight:900;}
+    .stat.pos .val{ color: var(--ok); }
+    .stat.neg .val{ color: var(--bad); }
+    tfoot td{ font-weight:800; border-top:2px solid var(--ink); }
+    details{ border:1px solid var(--line); border-radius: 10px; padding: 10px 12px; background:#fff; }
+    summary{ font-weight:800; cursor:pointer; }
+    footer.note{ color:var(--muted); font-size:12px; margin: 14px 0 40px; text-align:center; }
+    .anchor{ position:relative; inset-block-start:-80px; display:block; height:0; visibility:hidden; }
+    .inline-help{ font-size:12px; color:var(--muted); margin: 2px 0 0; }
+    .right{ text-align:right; }
+    .del{ color:#b21f2d; cursor:pointer; font-weight:800; }
+  </style>
+</head>
+<body>
+  <!-- Support in-page anchor used by the blog -->
+  <span id="portfolio-analyzer" class="anchor"></span>
+
+  <div class="wrap">
+    <header class="hero" role="banner">
+      <h1>🏖️ Las Vegas Portfolio Analyzer</h1>
+      <p>Comprehensive analysis of your Las Vegas real estate portfolio performance: <strong>cap rate, NOI, cash flow, cash‑on‑cash, ROE,</strong> and <strong>appreciation CAGR</strong> by property and portfolio.</p>
+    </header>
+
+    <section class="card" aria-labelledby="controls">
+      <div class="pad">
+        <h2 id="controls">Portfolio &amp; Assumptions</h2>
+        <div class="row">
+          <label for="asOf">As‑of date <span class="sublabel">(for CAGR calculations)</span></label>
+          <input type="month" id="asOf" />
+        </div>
+        <div class="actions">
+          <button class="btn success" id="addRow">➕ Add property</button>
+          <button class="btn secondary" id="resetBtn" type="button">↺ Reset demo</button>
+          <button class="btn light" id="shareBtn" type="button" title="Copy a link with your portfolio">🔗 Copy sharable link</button>
+          <button class="btn light" id="csvBtn" type="button">⬇️ Export CSV</button>
+          <span class="pill">Anchored for blog embeds</span>
+        </div>
+        <p class="inline-help">Tip: values recalc instantly as you type. Use the CSV export to share results.</p>
+      </div>
+    </section>
+
+    <section class="card" style="margin-top:14px" aria-labelledby="propTableTitle">
+      <div class="pad">
+        <h2 id="propTableTitle">Properties</h2>
+        <div class="tableWrap">
+          <table id="propTable" aria-describedby="propTableTitle">
+            <thead>
+              <tr>
+                <th>Property Name</th>
+                <th>Type</th>
+                <th>Purchase Price</th>
+                <th>Purchase Date</th>
+                <th>Current Value</th>
+                <th>Loan Balance</th>
+                <th>Annual Rent</th>
+                <th>Other Income</th>
+                <th>Vacancy %</th>
+                <th>Operating Expenses (annual)</th>
+                <th>Mgmt %</th>
+                <th>CapEx (annual)</th>
+                <th>Debt Service (annual)</th>
+                <th>Cash Invested</th>
+                <th>—</th>
+              </tr>
+            </thead>
+            <tbody id="propBody">
+              <!-- rows injected -->
+            </tbody>
+          </table>
+        </div>
+        <p class="inline-help">Definitions: NOI = (Rent + Other) × (1−Vacancy) − OpEx − Mgmt% × Gross − CapEx. Cap Rate = NOI ÷ Current Value. CoC = (NOI − Debt) ÷ Cash Invested. ROE = NOI ÷ Equity. DSCR = NOI ÷ Debt.</p>
+      </div>
+    </section>
+
+    <section class="card" style="margin-top:14px" aria-labelledby="resultsTitle">
+      <div class="pad">
+        <h2 id="resultsTitle">Results</h2>
+        <div class="results" aria-live="polite">
+          <div class="stat">
+            <h4>Portfolio Value</h4>
+            <div class="val" id="portValue">$0</div>
+          </div>
+          <div class="stat">
+            <h4>Total Equity</h4>
+            <div class="val" id="portEquity">$0</div>
+          </div>
+          <div class="stat">
+            <h4>Annual NOI</h4>
+            <div class="val" id="portNOI">$0</div>
+          </div>
+          <div class="stat">
+            <h4>Annual Cash Flow</h4>
+            <div class="val" id="portCF">$0</div>
+          </div>
+          <div class="stat">
+            <h4>Weighted Cap Rate</h4>
+            <div class="val" id="portCap">0%</div>
+          </div>
+          <div class="stat">
+            <h4>Cash‑on‑Cash (Portfolio)</h4>
+            <div class="val" id="portCoC">0%</div>
+          </div>
+          <div class="stat">
+            <h4>DSCR (Portfolio)</h4>
+            <div class="val" id="portDSCR">—</div>
+          </div>
+          <div class="stat">
+            <h4>Avg Appreciation CAGR</h4>
+            <div class="val" id="portCAGR">0%</div>
+          </div>
+        </div>
+
+        <h3 style="margin-top:18px">By Property</h3>
+        <div class="tableWrap">
+          <table aria-describedby="resultsTitle">
+            <thead>
+              <tr>
+                <th>Property</th>
+                <th class="right">Current Value</th>
+                <th class="right">Equity</th>
+                <th class="right">NOI</th>
+                <th class="right">Cap Rate</th>
+                <th class="right">Cash Flow</th>
+                <th class="right">CoC</th>
+                <th class="right">ROE</th>
+                <th class="right">CAGR</th>
+              </tr>
+            </thead>
+            <tbody id="breakdownBody">
+              <!-- populated by JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <footer class="note">
+          This tool provides directional estimates for planning. It is not tax, legal, or financial advice.
+        </footer>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // ===== Utilities =====
+    const $ = (id) => document.getElementById(id);
+    const fmt$ = (n) => n.toLocaleString(undefined, {style:'currency', currency:'USD', maximumFractionDigits:0});
+    const fmtPct = (p) => (p*100).toFixed(1) + '%';
+    const clampNum = (v) => isFinite(v) ? v : 0;
+    const today = new Date();
+    const pad = (n) => String(n).padStart(2,'0');
+
+    function monthToYears(fromStr, toStr){
+      if(!fromStr) return 0;
+      const from = new Date(fromStr + '-01T00:00:00');
+      const to = toStr ? new Date(toStr + '-01T00:00:00') : today;
+      const months = (to.getFullYear()-from.getFullYear())*12 + (to.getMonth()-from.getMonth());
+      return Math.max(0, months/12);
+    }
+
+    // ===== Data & DOM rows =====
+    let nextId = 1;
+
+    function newRow(data={}){
+      const id = data.id || nextId++;
+      const tr = document.createElement('tr');
+      tr.dataset.id = id;
+      tr.innerHTML = `
+        <td><input type="text" value="${data.name||''}" placeholder="e.g., The Ridges Residence"/></td>
+        <td>
+          <select>
+            <option ${data.type==='Primary'?'selected':''}>Primary</option>
+            <option ${data.type==='Investment'?'selected':''}>Investment</option>
+            <option ${data.type==='Vacation'?'selected':''}>Vacation</option>
+            <option ${data.type==='Commercial'?'selected':''}>Commercial</option>
+          </select>
+        </td>
+        <td><input type="number" step="10000" min="0" value="${data.purchasePrice??0}"/></td>
+        <td><input type="month" value="${data.purchaseDate||''}"/></td>
+        <td><input type="number" step="10000" min="0" value="${data.currentValue??0}"/></td>
+        <td><input type="number" step="10000" min="0" value="${data.loanBalance??0}"/></td>
+        <td><input type="number" step="1000" min="0" value="${data.annualRent??0}"/></td>
+        <td><input type="number" step="100" min="0" value="${data.otherIncome??0}"/></td>
+        <td><input type="number" step="0.5" min="0" value="${data.vacancyPct??5}"/></td>
+        <td><input type="number" step="1000" min="0" value="${data.opExAnnual??0}"/></td>
+        <td><input type="number" step="0.5" min="0" value="${data.mgmtPct??8}"/></td>
+        <td><input type="number" step="1000" min="0" value="${data.capexAnnual??0}"/></td>
+        <td><input type="number" step="1000" min="0" value="${data.debtService??0}"/></td>
+        <td><input type="number" step="1000" min="0" value="${data.cashInvested??0}"/></td>
+        <td class="del" title="Remove">✖</td>
+      `;
+      tr.querySelectorAll('input,select').forEach(el => {
+        el.addEventListener('input', calc);
+        el.addEventListener('change', calc);
+      });
+      tr.querySelector('.del').addEventListener('click', ()=>{ tr.remove(); calc(); });
+      $('propBody').appendChild(tr);
+    }
+
+    function readRow(tr){
+      const cells = tr.querySelectorAll('td');
+      const val = (i) => {
+        const el = cells[i].querySelector('input,select');
+        return el ? el.value : '';
+      };
+      const num = (i) => clampNum(parseFloat(String(val(i)).replace(/,/g,''))) || 0;
+      return {
+        id: tr.dataset.id,
+        name: val(0),
+        type: val(1),
+        purchasePrice: num(2),
+        purchaseDate: val(3),
+        currentValue: num(4),
+        loanBalance: num(5),
+        annualRent: num(6),
+        otherIncome: num(7),
+        vacancyPct: num(8),
+        opExAnnual: num(9),
+        mgmtPct: num(10),
+        capexAnnual: num(11),
+        debtService: num(12),
+        cashInvested: num(13),
+      };
+    }
+
+    function collect(){
+      return Array.from(document.querySelectorAll('#propBody tr')).map(readRow);
+    }
+
+    // ===== Calculations =====
+    function computeOne(p, asOfStr){
+      const years = monthToYears(p.purchaseDate, asOfStr);
+      const gross = p.annualRent + p.otherIncome;
+      const vacancyLoss = gross * (p.vacancyPct/100);
+      const mgmt = gross * (p.mgmtPct/100);
+      const noi = gross - vacancyLoss - p.opExAnnual - mgmt - p.capexAnnual;
+      const value = p.currentValue;
+      const capRate = value > 0 ? noi / value : 0;
+      const equity = Math.max(0, value - p.loanBalance);
+      const cashFlow = noi - p.debtService;
+      const coc = p.cashInvested > 0 ? cashFlow / p.cashInvested : 0;
+      const roe = equity > 0 ? noi / equity : 0;
+      const dscr = p.debtService > 0 ? noi / p.debtService : null;
+
+      let cagr = 0;
+      if (p.purchasePrice > 0 && years > 0 && value > 0){
+        cagr = Math.pow(value / p.purchasePrice, 1/years) - 1;
+      }
+      return { years, gross, vacancyLoss, mgmt, noi, value, capRate, equity, cashFlow, coc, roe, dscr, cagr };
+    }
+
+    function computeAll(list, asOfStr){
+      const rows = list.map(p => ({ p, m: computeOne(p, asOfStr) }));
+      const totals = rows.reduce((acc, r) => {
+        acc.value += r.m.value;
+        acc.noi += r.m.noi;
+        acc.debt += r.p.debtService;
+        acc.cashFlow += r.m.cashFlow;
+        acc.equity += r.m.equity;
+        acc.cashInvested += r.p.cashInvested;
+        if(!isNaN(r.m.cagr) && r.m.cagr > 0) { acc.cagrSum += r.m.cagr; acc.cagrCount++; }
+        return acc;
+      }, {value:0, noi:0, debt:0, cashFlow:0, equity:0, cashInvested:0, cagrSum:0, cagrCount:0});
+
+      const weightedCap = totals.value > 0 ? totals.noi / totals.value : 0;
+      const portCoC = totals.cashInvested > 0 ? totals.cashFlow / totals.cashInvested : 0;
+      const portDSCR = totals.debt > 0 ? totals.noi / totals.debt : null;
+      const avgCAGR = totals.cagrCount > 0 ? totals.cagrSum / totals.cagrCount : 0;
+
+      return { rows, totals, weightedCap, portCoC, portDSCR, avgCAGR };
+    }
+
+    // ===== Rendering =====
+    function render(out){
+      // Stat cards
+      $('portValue').textContent = fmt$(out.totals.value);
+      $('portEquity').textContent = fmt$(out.totals.equity);
+      $('portNOI').textContent = fmt$(out.totals.noi);
+      $('portCF').textContent = fmt$(out.totals.cashFlow);
+      $('portCap').textContent = (out.weightedCap*100).toFixed(1) + '%';
+      $('portCoC').textContent = (out.portCoC*100).toFixed(1) + '%';
+      $('portDSCR').textContent = out.portDSCR ? out.portDSCR.toFixed(2) : '—';
+      $('portCAGR').textContent = (out.avgCAGR*100).toFixed(1) + '%';
+
+      // Breakdown table
+      const tb = $('breakdownBody');
+      tb.innerHTML = out.rows.map(({p,m}) => `
+        <tr>
+          <td>${p.name||'(unnamed)'}${p.type ? ' — <span class="muted">'+p.type+'</span>':''}</td>
+          <td class="right">${fmt$(m.value)}</td>
+          <td class="right">${fmt$(m.equity)}</td>
+          <td class="right">${fmt$(m.noi)}</td>
+          <td class="right">${(m.capRate*100).toFixed(1)}%</td>
+          <td class="right">${fmt$(m.cashFlow)}</td>
+          <td class="right">${(m.coc*100).toFixed(1)}%</td>
+          <td class="right">${(m.roe*100).toFixed(1)}%</td>
+          <td class="right">${(m.cagr*100).toFixed(1)}%</td>
+        </tr>
+      `).join('');
+
+      // Auto-resize for parent
+      queueMicrotask(resizeForParent);
+    }
+
+    // ===== Share & CSV =====
+    function encodeState(){
+      const state = { asOf: $('asOf').value, props: collect() };
+      const json = JSON.stringify(state);
+      return btoa(unescape(encodeURIComponent(json)));
+    }
+    function decodeState(str){
+      try{
+        const json = decodeURIComponent(escape(atob(str)));
+        return JSON.parse(json);
+      }catch(e){ return null; }
+    }
+    function shareLink(){
+      const enc = encodeState();
+      const url = location.origin + location.pathname + '?data=' + enc;
+      navigator.clipboard.writeText(url).then(()=>alert('Sharable link copied to clipboard.')).catch(()=>{ prompt('Copy this link:', url); });
+    }
+    function exportCSV(){
+      const cols = ['Property','Type','Purchase Price','Purchase Date','Current Value','Loan Balance','Annual Rent','Other Income','Vacancy %','OpEx','Mgmt %','CapEx','Debt Service','Cash Invested','NOI','Cap Rate','Cash Flow','CoC','ROE','CAGR'];
+      const asOf = $('asOf').value;
+      const lines = [cols.join(',')];
+      const list = collect();
+      const out = computeAll(list, asOf);
+      out.rows.forEach(({p,m})=>{
+        const row = [
+          `"${(p.name||'').replace(/"/g,'""')}"`, p.type||'',
+          p.purchasePrice, p.purchaseDate||'', p.currentValue, p.loanBalance,
+          p.annualRent, p.otherIncome, p.vacancyPct, p.opExAnnual, p.mgmtPct, p.capexAnnual, p.debtService, p.cashInvested,
+          m.noi.toFixed(2), (m.capRate*100).toFixed(2)+'%', m.cashFlow.toFixed(2), (m.coc*100).toFixed(2)+'%', (m.roe*100).toFixed(2)+'%', (m.cagr*100).toFixed(2)+'%'
+        ];
+        lines.push(row.join(','));
+      });
+      const totals = out.totals;
+      lines.push(['Totals','','','','', '', '', '', '', '', '', '', '', totals.cashInvested.toFixed(2),
+        totals.noi.toFixed(2), (out.weightedCap*100).toFixed(2)+'%', totals.cashFlow.toFixed(2), (out.portCoC*100).toFixed(2)+'%', '', (out.avgCAGR*100).toFixed(2)+'%'
+      ].join(','));
+      const blob = new Blob([lines.join('\n')], {type:'text/csv'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'las-vegas-portfolio-analyzer.csv';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    // ===== Resize for parent embed =====
+    function resizeForParent(){
+      const h = document.documentElement.scrollHeight;
+      try { window.parent.postMessage({type:'recn-iframe-height', height: h}, '*'); } catch(e){}
+    }
+
+    // ===== Init & demo defaults =====
+    function resetDemo(){
+      // Clear rows
+      $('propBody').innerHTML = '';
+      nextId = 1;
+      // Demo portfolio based on blog's sample story (editable)
+      newRow({
+        name:'The Ridges Residence', type:'Primary',
+        purchasePrice:2800000, purchaseDate:'2019-06', currentValue:4200000, loanBalance:1400000,
+        annualRent:0, otherIncome:0, vacancyPct:0, opExAnnual:0, mgmtPct:0, capexAnnual:0,
+        debtService:0, cashInvested:1400000
+      });
+      newRow({
+        name:'Red Rock Country Club Rental', type:'Investment',
+        purchasePrice:1600000, purchaseDate:'2020-05', currentValue:2400000, loanBalance:900000,
+        annualRent:132000, otherIncome:0, vacancyPct:5, opExAnnual:24000, mgmtPct:8, capexAnnual:12000,
+        debtService:72000, cashInvested:400000
+      });
+      newRow({
+        name:'Lake Las Vegas Vacation Home', type:'Vacation',
+        purchasePrice:3200000, purchaseDate:'2021-07', currentValue:4800000, loanBalance:2200000,
+        annualRent:0, otherIncome:0, vacancyPct:0, opExAnnual:0, mgmtPct:0, capexAnnual:0,
+        debtService:0, cashInvested:1000000
+      });
+      newRow({
+        name:'Summerlin Office', type:'Commercial',
+        purchasePrice:2400000, purchaseDate:'2022-03', currentValue:3600000, loanBalance:1500000,
+        annualRent:210000, otherIncome:0, vacancyPct:5, opExAnnual:60000, mgmtPct:5, capexAnnual:20000,
+        debtService:120000, cashInvested:600000
+      });
+      // As-of defaults to this month
+      const now = new Date();
+      $('asOf').value = now.getFullYear() + '-' + pad(now.getMonth()+1);
+      calc();
+      window.scrollTo({top:0, behavior:'smooth'});
+    }
+
+    function loadFromQuery(){
+      const q = new URLSearchParams(location.search);
+      const data = q.get('data');
+      if(!data) return false;
+      const state = decodeState(data);
+      if(!state) return false;
+      $('propBody').innerHTML='';
+      nextId = 1;
+      (state.props||[]).forEach(p => newRow(p));
+      $('asOf').value = state.asOf || '';
+      return true;
+    }
+
+    function calc(){
+      const list = collect();
+      const out = computeAll(list, $('asOf').value);
+      render(out);
+    }
+
+    // Wire up controls
+    $('addRow').addEventListener('click', ()=>{ newRow({}); calc(); });
+    $('resetBtn').addEventListener('click', resetDemo);
+    $('shareBtn').addEventListener('click', shareLink);
+    $('csvBtn').addEventListener('click', exportCSV);
+    $('asOf').addEventListener('change', calc);
+
+    // Boot
+    const hadState = loadFromQuery();
+    if(!hadState){ resetDemo(); } else { calc(); }
+    window.addEventListener('load', resizeForParent);
+    window.addEventListener('resize', resizeForParent);
+    setTimeout(resizeForParent, 300);
+  </script>
+</body>
+</html>
