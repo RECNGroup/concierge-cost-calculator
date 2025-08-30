@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nevada Fee Savings ROI Calculator | RECN</title>
+  <meta name="description" content="Estimate total financial benefit and ROI from using a concierge compensation program compared with a traditional fee structure. All compensation is negotiable." />
+  <style>
+    :root{
+      --brand:#6c757d; /* neutral for ROI section */
+      --accent:#28a745;
+      --ink:#1f2937;
+      --muted:#6b7280;
+      --bg:#f7f9fb;
+      --card:#fff;
+      --line:#e5e7eb;
+      --radius:14px;
+      --shadow:0 6px 20px rgba(0,0,0,.06);
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family: ui-sans-serif, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial; color:var(--ink); background:var(--bg); line-height:1.5;}
+    .wrap{max-width:1100px;margin:0 auto;padding:clamp(16px,2vw,28px);}
+    header.hero{background: linear-gradient(135deg, var(--brand) 0%, #495057 100%); color:#fff; padding: clamp(22px,3vw,34px); border-radius:var(--radius); box-shadow:var(--shadow); margin: 18px 0 22px;}
+    header.hero h1{margin:0 0 6px; font-size: clamp(22px, 3.2vw, 34px);}
+    header.hero p{margin:6px 0 0; opacity:.95}
+    .card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); margin-top:14px;}
+    .pad{padding: clamp(16px, 2.4vw, 24px);}
+    .grid{display:grid; grid-template-columns: 1fr 1fr; gap:14px;}
+    @media (max-width:980px){ .grid{grid-template-columns:1fr;} }
+    label{font-weight:700;}
+    input[type=number], select{width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:#fff; font-size:15px;}
+    .inline{font-size:12px; color:var(--muted);}
+    .sectionTitle{margin:4px 0 8px;}
+    .statGrid{display:grid; grid-template-columns: repeat(4,1fr); gap:12px; margin-top:8px;}
+    @media (max-width:980px){ .statGrid{grid-template-columns: repeat(2,1fr);} }
+    @media (max-width:520px){ .statGrid{grid-template-columns: 1fr;} }
+    .stat{border:1px solid var(--line); border-radius:12px; padding:14px; background:#fff;}
+    .stat h4{margin:0; font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.4px;}
+    .stat .val{font-size: clamp(20px, 2.6vw, 28px); margin-top:4px; font-weight:900;}
+    .pos{color:#157347;}
+    .tableWrap{overflow:auto; border:1px solid var(--line); border-radius:12px;}
+    table{width:100%; border-collapse:collapse;}
+    th,td{border-top:1px solid var(--line); padding:10px; text-align:left;}
+    th{background:#fafafa; font-size:13px;}
+    .anchor{position:relative; inset-block-start:-80px; height:0; visibility:hidden; display:block;}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;}
+    .btn{display:inline-flex; align-items:center; gap:8px; background:var(--accent); color:#fff; border:1px solid transparent; padding:12px 16px; border-radius:10px; font-weight:800; cursor:pointer;}
+    .btn.light{background:#fff; color:var(--ink); border-color:var(--line);}
+  </style>
+</head>
+<body>
+  <span id="roi-analysis" class="anchor"></span>
+  <div class="wrap">
+    <header class="hero">
+      <h1>📊 Nevada Fee Savings ROI Calculator</h1>
+      <p>Model the <strong>total financial benefit</strong> and <strong>ROI</strong> from a concierge program vs. a traditional fee structure. <strong>All compensation is negotiable.</strong></p>
+    </header>
+
+    <section class="card" aria-labelledby="setup">
+      <div class="pad">
+        <h2 id="setup">Transaction Setup</h2>
+        <div class="grid">
+          <div>
+            <label for="side">Transaction Side</label>
+            <select id="side">
+              <option value="sell">Sell</option>
+              <option value="buy">Buy</option>
+            </select>
+          </div>
+          <div>
+            <label for="price">Property Price</label>
+            <input id="price" type="number" step="1000" min="0" value="1000000"/>
+            <div class="inline">Sale (sell) or purchase (buy)</div>
+          </div>
+        </div>
+
+        <h3 class="sectionTitle">Fee Model</h3>
+        <div class="grid">
+          <div>
+            <label for="tradPct">Traditional Percent</label>
+            <input id="tradPct" type="number" step="0.1" min="0" value="6"/>
+            <div class="inline">% of price</div>
+          </div>
+          <div>
+            <label for="tradAdmin">Traditional Admin ($)</label>
+            <input id="tradAdmin" type="number" step="50" min="0" value="500"/>
+          </div>
+          <div>
+            <label for="model">Concierge Model</label>
+            <select id="model">
+              <option value="percent">Percent</option>
+              <option value="fixed">Fixed</option>
+              <option value="hybrid">Hybrid</option>
+            </select>
+          </div>
+          <div id="percentBox">
+            <label for="concPct">Concierge Percent</label>
+            <input id="concPct" type="number" step="0.1" min="0" value="3.5"/>
+          </div>
+          <div id="fixedBox" style="display:none">
+            <label for="concFixed">Concierge Fixed ($)</label>
+            <input id="concFixed" type="number" step="500" min="0" value="25000"/>
+          </div>
+          <div id="hybridBox" style="display:none">
+            <label for="hybridBase">Hybrid Base ($)</label>
+            <input id="hybridBase" type="number" step="500" min="0" value="10000"/>
+            <div class="inline">+ <input id="hybridPct" type="number" step="0.1" min="0" value="1.5" style="width:120px;margin-left:6px;"> % of price</div>
+          </div>
+          <div>
+            <label for="concAdmin">Concierge Admin ($)</label>
+            <input id="concAdmin" type="number" step="50" min="0" value="0"/>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="valueAdds">
+      <div class="pad">
+        <h2 id="valueAdds">Value Adds (Optional)</h2>
+        <div class="grid">
+          <div>
+            <label for="priceLiftPct">Price Premium (%)</label>
+            <input id="priceLiftPct" type="number" step="0.1" min="0" value="1.5"/>
+            <div class="inline">Expected sale price lift (sell) or purchase discount (buy, enter as %)</div>
+          </div>
+          <div>
+            <label for="includedSvcs">Included Services Saved ($)</label>
+            <input id="includedSvcs" type="number" step="100" min="0" value="6000"/>
+            <div class="inline">e.g., pro photography, staging consult, marketing</div>
+          </div>
+          <div>
+            <label for="daysFaster">Days Faster</label>
+            <input id="daysFaster" type="number" step="1" min="0" value="30"/>
+            <div class="inline">Expected timeline improvement</div>
+          </div>
+          <div>
+            <label for="carryPerDay">Carry Cost per Day ($)</label>
+            <input id="carryPerDay" type="number" step="10" min="0" value="250"/>
+            <div class="inline">Mortgage/HOA/utility/opportunity cost per day</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="summary">
+      <div class="pad">
+        <h2 id="summary">Summary</h2>
+        <div class="statGrid">
+          <div class="stat">
+            <h4>Traditional Cost</h4>
+            <div class="val" id="tradCost">$0</div>
+          </div>
+          <div class="stat">
+            <h4>Concierge Cost</h4>
+            <div class="val" id="concCost">$0</div>
+          </div>
+          <div class="stat">
+            <h4>Fee Savings</h4>
+            <div class="val pos" id="feeSavings">$0</div>
+          </div>
+          <div class="stat">
+            <h4>Added Value</h4>
+            <div class="val pos" id="addedValue">$0</div>
+          </div>
+          <div class="stat">
+            <h4>Total Financial Benefit</h4>
+            <div class="val pos" id="totalBenefit">$0</div>
+          </div>
+          <div class="stat">
+            <h4>ROI on Concierge Cost</h4>
+            <div class="val pos" id="roiPct">0%</div>
+          </div>
+        </div>
+
+        <h3 style="margin-top:18px">Line‑Item Breakdown</h3>
+        <div class="tableWrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Component</th><th>Formula</th><th>Amount</th>
+              </tr>
+            </thead>
+            <tbody id="breakdown">
+            </tbody>
+          </table>
+        </div>
+
+        <div class="actions">
+          <button class="btn" id="copyLink">🔗 Copy sharable link</button>
+          <button class="btn light" id="resetBtn">↺ Reset demo</button>
+        </div>
+
+        <p class="inline">This tool is illustrative only and not financial advice. Actual compensation, services, and outcomes are negotiated by the parties.</p>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const fmt$ = (n) => n.toLocaleString(undefined,{style:'currency',currency:'USD',maximumFractionDigits:0});
+    function conciergeCost(price){
+      const model = $('model').value;
+      if(model==='percent'){ return price * ((+$('concPct').value||0)/100) + (+$('concAdmin').value||0); }
+      if(model==='fixed'){ return (+$('concFixed').value||0) + (+$('concAdmin').value||0); }
+      return (+$('hybridBase').value||0) + price * ((+$('hybridPct').value||0)/100) + (+$('concAdmin').value||0);
+    }
+    function traditionalCost(price){
+      return price * ((+$('tradPct').value||0)/100) + (+$('tradAdmin').value||0);
+    }
+    function calc(){
+      const price = +$('price').value || 0;
+      const side = $('side').value;
+      const trad = traditionalCost(price);
+      const conc = conciergeCost(price);
+      const feeSav = Math.max(0, trad - conc);
+
+      // value adds
+      const priceLiftPct = (+$('priceLiftPct').value||0)/100;
+      const daysFaster = +$('daysFaster').value || 0;
+      const carryPerDay = +$('carryPerDay').value || 0;
+      const includedSvcs = +$('includedSvcs').value || 0;
+
+      // For buy side, treat priceLift% as discount benefit (price * pct)
+      const priceEffect = price * priceLiftPct;
+      const priceBenefit = side==='sell' ? priceEffect : priceEffect; // both positive benefit inputs
+
+      const timeBenefit = daysFaster * carryPerDay;
+
+      const added = Math.max(0, priceBenefit) + Math.max(0, timeBenefit) + Math.max(0, includedSvcs);
+      const total = feeSav + added;
+      const roi = conc>0 ? (total / conc) * 100 : 0;
+
+      $('tradCost').textContent = fmt$(trad);
+      $('concCost').textContent = fmt$(conc);
+      $('feeSavings').textContent = fmt$(feeSav);
+      $('addedValue').textContent = fmt$(added);
+      $('totalBenefit').textContent = fmt$(total);
+      $('roiPct').textContent = roi.toFixed(0)+'%';
+      $('breakdown').innerHTML = `
+        <tr><td>Fee Savings</td><td>traditional − concierge</td><td>${fmt$(feeSav)}</td></tr>
+        <tr><td>${side==='sell'?'Sale Price Premium':'Purchase Discount'}</td><td>price × %</td><td>${fmt$(priceBenefit)}</td></tr>
+        <tr><td>Timeline Advantage</td><td>days faster × $/day</td><td>${fmt$(timeBenefit)}</td></tr>
+        <tr><td>Included Services Offset</td><td>provided value</td><td>${fmt$(includedSvcs)}</td></tr>
+        <tr><td><strong>Total Financial Benefit</strong></td><td>sum</td><td><strong>${fmt$(total)}</strong></td></tr>
+      `;
+
+      try{ window.parent.postMessage({type:'recn-iframe-height', height: document.documentElement.scrollHeight}, '*'); }catch(e){}
+    }
+    function onModel(){
+      const model = $('model').value;
+      $('percentBox').style.display = model==='percent' ? '' : 'none';
+      $('fixedBox').style.display   = model==='fixed'   ? '' : 'none';
+      $('hybridBox').style.display  = model==='hybrid'  ? '' : 'none';
+      calc();
+    }
+    function resetDemo(){
+      $('side').value = 'sell';
+      $('price').value = 1000000;
+      $('tradPct').value = 6;
+      $('tradAdmin').value = 500;
+      $('model').value = 'percent';
+      $('concPct').value = 3.5;
+      $('concFixed').value = 25000;
+      $('hybridBase').value = 10000;
+      $('hybridPct').value = 1.5;
+      $('concAdmin').value = 0;
+      $('priceLiftPct').value = 1.5;
+      $('includedSvcs').value = 6000;
+      $('daysFaster').value = 30;
+      $('carryPerDay').value = 250;
+      onModel();
+    }
+    function encodeState(){
+      const st = {
+        side:$('side').value, price:$('price').value,
+        tradPct:$('tradPct').value, tradAdmin:$('tradAdmin').value,
+        model:$('model').value, concPct:$('concPct').value, concFixed:$('concFixed').value,
+        hybridBase:$('hybridBase').value, hybridPct:$('hybridPct').value, concAdmin:$('concAdmin').value,
+        priceLiftPct:$('priceLiftPct').value, includedSvcs:$('includedSvcs').value,
+        daysFaster:$('daysFaster').value, carryPerDay:$('carryPerDay').value
+      };
+      return btoa(unescape(encodeURIComponent(JSON.stringify(st))));
+    }
+    function decodeState(s){
+      try{ return JSON.parse(decodeURIComponent(escape(atob(s)))); }catch(e){ return null; }
+    }
+    function loadFromQuery(){
+      const q = new URLSearchParams(location.search);
+      const d = q.get('data'); if(!d) return false;
+      const st = decodeState(d); if(!st) return false;
+      $('side').value = st.side||'sell';
+      $('price').value = st.price||1000000;
+      $('tradPct').value = st.tradPct||6;
+      $('tradAdmin').value = st.tradAdmin||500;
+      $('model').value = st.model||'percent';
+      $('concPct').value = st.concPct||3.5;
+      $('concFixed').value = st.concFixed||25000;
+      $('hybridBase').value = st.hybridBase||10000;
+      $('hybridPct').value = st.hybridPct||1.5;
+      $('concAdmin').value = st.concAdmin||0;
+      $('priceLiftPct').value = st.priceLiftPct||1.5;
+      $('includedSvcs').value = st.includedSvcs||6000;
+      $('daysFaster').value = st.daysFaster||30;
+      $('carryPerDay').value = st.carryPerDay||250;
+      onModel();
+      return true;
+    }
+    // wire
+    ['side','price','tradPct','tradAdmin','concPct','concFixed','hybridBase','hybridPct','concAdmin','priceLiftPct','includedSvcs','daysFaster','carryPerDay'].forEach(id => $(id).addEventListener('input', calc));
+    $('model').addEventListener('change', onModel);
+    $('resetBtn').addEventListener('click', resetDemo);
+    $('copyLink').addEventListener('click', ()=>{
+      const url = location.origin + location.pathname + '?data=' + encodeState();
+      navigator.clipboard.writeText(url).then(()=>alert('Sharable link copied!')).catch(()=>{ prompt('Copy this link:', url); });
+    });
+    // boot
+    const had = loadFromQuery();
+    if(!had){ resetDemo(); } else { calc(); }
+    window.addEventListener('load', calc);
+    window.addEventListener('resize', calc);
+  </script>
+</body>
+</html>
