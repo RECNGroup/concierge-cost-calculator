@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Las Vegas Concierge Value Calculator | RECN</title>
+  <meta name="description" content="Interactive calculator to quantify the annual ROI of Las Vegas real estate concierge lifetime support compared to traditional, transaction-only service." />
+  <style>
+    :root{
+      --brand:#dc3545; /* vegas red */
+      --brand2:#28a745; /* green */
+      --teal:#17a2b8; /* teal */
+      --purple:#6f42c1;
+      --ink:#1b1f23;
+      --muted:#6c757d;
+      --bg:#f7f9fb;
+      --card:#ffffff;
+      --line:#e5e7eb;
+      --ok:#28a745;
+      --bad:#c82333;
+      --radius:14px;
+      --shadow:0 4px 14px rgba(0,0,0,.08);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color:var(--ink);
+      background:var(--bg);
+      line-height:1.5;
+    }
+    a { color: var(--teal); text-decoration: none; }
+    .wrap{ max-width:1100px; margin:0 auto; padding: clamp(16px, 2vw, 28px); }
+    header.hero{
+      background: linear-gradient(135deg, var(--brand) 0%, #c82333 50%, #b21f2d 100%);
+      color:#fff; padding: clamp(22px, 3vw, 34px);
+      border-radius: var(--radius); box-shadow: var(--shadow); margin: 18px 0 22px;
+    }
+    header.hero h1{ margin:0 0 6px; font-size: clamp(22px, 3.2vw, 34px); letter-spacing:.2px; }
+    header.hero p{ margin:6px 0 0; opacity:.95 }
+    .grid{ display:grid; grid-template-columns: 1.25fr .75fr; gap: clamp(14px, 2.4vw, 24px); }
+    @media (max-width: 960px){ .grid{ grid-template-columns: 1fr; } }
+    .card{ background:var(--card); border:1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+    .card .pad{ padding: clamp(16px, 2.4vw, 24px); }
+    h2,h3{ margin-top:0; }
+    fieldset{ border:none; padding:0; margin:0 0 14px; }
+    legend{ font-weight:800; margin-bottom:10px; }
+    .row{ display:grid; grid-template-columns: 1fr 200px; align-items:center; gap: 12px; margin: 10px 0; }
+    @media (max-width: 720px){
+      .row{ grid-template-columns: 1fr; }
+      .row label{ margin-bottom: -4px; }
+    }
+    label{ font-weight:600; }
+    .sublabel{ display:block; color:var(--muted); font-weight:500; font-size: 12px; }
+    select, input[type=number]{
+      width:100%; padding:12px 12px; border:1px solid var(--line); border-radius:10px; background:#fff; font-size: 16px;
+    }
+    .hint{ color:var(--muted); font-size:12px; margin-top: -6px; }
+    .actions{ display:flex; gap:10px; flex-wrap: wrap; margin-top: 8px; }
+    .btn{ display:inline-flex; align-items:center; justify-content:center; gap:8px; border:1px solid transparent; background:var(--brand); color:#fff; font-weight:800; padding:12px 16px; border-radius:10px; cursor:pointer; }
+    .btn.secondary{ background:#fff; color:var(--teal); border-color: var(--teal); }
+    .btn.light{ background:#fff; color:var(--ink); border-color: var(--line); }
+    .btn.success{ background: var(--brand2); }
+    .btn:active{ transform: translateY(1px); }
+    .results{ display:grid; gap:12px; grid-template-columns: repeat(4, 1fr); }
+    @media (max-width: 960px){ .results{ grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 520px){ .results{ grid-template-columns: 1fr; } }
+    .stat{ border:1px solid var(--line); border-radius:12px; padding:14px; background: #fff; }
+    .stat h4{ margin:0; font-size:12px; color:var(--muted); letter-spacing:.4px; text-transform: uppercase;}
+    .stat .val{ font-size: clamp(20px, 2.5vw, 26px); margin-top: 4px; font-weight:900;}
+    .stat.pos .val{ color: var(--ok); }
+    .stat.neg .val{ color: var(--bad); }
+    table{ width:100%; border-collapse: collapse; }
+    th, td{ border-top:1px solid var(--line); padding:10px; text-align:left; }
+    th{ background:#fafafa; font-size:13px; }
+    tfoot td{ font-weight:800; border-top:2px solid var(--ink); }
+    .muted{ color: var(--muted); }
+    details{ border:1px solid var(--line); border-radius: 10px; padding: 10px 12px; background:#fff; }
+    summary{ font-weight:800; cursor:pointer; }
+    footer.note{ color:var(--muted); font-size:12px; margin: 14px 0 40px; text-align:center; }
+    .anchor{ position:relative; inset-block-start:-80px; display:block; height:0; visibility:hidden; }
+    .pill{ display:inline-block; padding:6px 10px; border-radius:999px; background:#ffe8ea; color:#b21f2d; font-weight:800; font-size:12px; border:1px solid #f3c8cd; }
+  </style>
+</head>
+<body>
+  <!-- Support in-page anchors referenced by the blog -->
+  <span id="concierge-comparison" class="anchor"></span>
+  <span id="service-comparison" class="anchor"></span>
+  <span id="portfolio-analyzer" class="anchor"></span>
+  <span id="investment-calculator" class="anchor"></span>
+  <span id="market-intelligence" class="anchor"></span>
+
+  <div class="wrap">
+    <header class="hero" role="banner">
+      <h1>🏖️ Las Vegas Concierge Value Calculator</h1>
+      <p>Quantify the annual <strong>ROI of lifetime concierge support</strong> versus traditional, transaction-only real estate service. Defaults reflect a luxury client scenario from the blog.</p>
+    </header>
+
+    <div class="grid" role="main">
+      <section class="card" aria-labelledby="inputs-title">
+        <div class="pad">
+          <h2 id="inputs-title">Inputs</h2>
+
+          <fieldset>
+            <legend>Service Level</legend>
+            <div class="row">
+              <label for="serviceLevel">Choose plan <span class="sublabel">Sets annual concierge fee</span></label>
+              <select id="serviceLevel">
+                <option value="silver">Silver Concierge — $8,000</option>
+                <option value="gold" selected>Gold Concierge — $15,000</option>
+                <option value="platinum">Platinum Concierge — $25,000</option>
+                <option value="custom">Custom</option>
+              </select>
+            </div>
+            <div class="row" id="customFeeRow" style="display:none">
+              <label for="customFee">Custom annual concierge fee <span class="sublabel">($/year)</span></label>
+              <input type="number" id="customFee" min="0" step="500" value="15000" />
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Transactions &amp; Pricing</legend>
+            <div class="row">
+              <label for="avgPrice">Average property price <span class="sublabel">($)</span></label>
+              <input type="number" id="avgPrice" min="0" step="50000" value="3000000" />
+            </div>
+            <div class="row">
+              <label for="purchases">Expected purchases per year <span class="sublabel">(count)</span></label>
+              <input type="number" id="purchases" min="0" step="1" value="1" />
+            </div>
+            <div class="row">
+              <label for="sales">Expected sales per year <span class="sublabel">(count)</span></label>
+              <input type="number" id="sales" min="0" step="1" value="0" />
+            </div>
+            <details>
+              <summary>Advanced deal advantages</summary>
+              <div class="row" style="margin-top:10px;">
+                <label for="offMarketPct">Off‑market access discount <span class="sublabel">(% of price per purchase)</span></label>
+                <input type="number" id="offMarketPct" min="0" step="0.1" value="2" />
+              </div>
+              <div class="row">
+                <label for="negotiationPct">Negotiation improvement <span class="sublabel">(% of price per purchase)</span></label>
+                <input type="number" id="negotiationPct" min="0" step="0.1" value="1.5" />
+              </div>
+              <div class="row">
+                <label for="saleUpliftPct">Sale price uplift <span class="sublabel">(% of price per sale)</span></label>
+                <input type="number" id="saleUpliftPct" min="0" step="0.1" value="1" />
+              </div>
+            </details>
+          </fieldset>
+
+          <fieldset>
+            <legend>Projects, Time &amp; Rentals</legend>
+            <div class="row">
+              <label for="renoBudget">Annual improvements budget <span class="sublabel">($)</span></label>
+              <input type="number" id="renoBudget" min="0" step="5000" value="150000" />
+            </div>
+            <div class="row">
+              <label for="renoSavingsPct">Concierge project savings <span class="sublabel">(% on improvements)</span></label>
+              <input type="number" id="renoSavingsPct" min="0" step="0.5" value="15" />
+            </div>
+            <div class="row">
+              <label for="hoursSaved">Time savings per year <span class="sublabel">(hours)</span></label>
+              <input type="number" id="hoursSaved" min="0" step="5" value="200" />
+            </div>
+            <div class="row">
+              <label for="hourlyValue">Value of your time <span class="sublabel">($/hour)</span></label>
+              <input type="number" id="hourlyValue" min="0" step="25" value="300" />
+            </div>
+            <details>
+              <summary>Rental vacancy impact (optional)</summary>
+              <div class="row" style="margin-top:10px;">
+                <label for="rentalUnits">Rental units impacted <span class="sublabel">(count)</span></label>
+                <input type="number" id="rentalUnits" min="0" step="1" value="1" />
+              </div>
+              <div class="row">
+                <label for="vacancyDaysSaved">Vacancy days saved per unit <span class="sublabel">(days/year)</span></label>
+                <input type="number" id="vacancyDaysSaved" min="0" step="1" value="10" />
+              </div>
+              <div class="row">
+                <label for="dailyRent">Daily rent <span class="sublabel">($/day)</span></label>
+                <input type="number" id="dailyRent" min="0" step="25" value="900" />
+              </div>
+            </details>
+          </fieldset>
+
+          <fieldset>
+            <legend>Portfolio Advantage</legend>
+            <div class="row">
+              <label for="portfolioValue">Las Vegas portfolio value <span class="sublabel">($)</span></label>
+              <input type="number" id="portfolioValue" min="0" step="50000" value="10000000" />
+            </div>
+            <div class="row">
+              <label for="appreciationBoostPct">Appreciation boost from strategy <span class="sublabel">(%/year)</span></label>
+              <input type="number" id="appreciationBoostPct" min="0" step="0.1" value="2" />
+            </div>
+          </fieldset>
+
+          <div class="actions">
+            <button class="btn success" id="calcBtn">💰 Calculate Value & ROI</button>
+            <button class="btn secondary" id="resetBtn" type="button">↺ Reset defaults</button>
+            <button class="btn light" id="shareBtn" type="button" title="Copy a link with your current inputs">🔗 Copy sharable link</button>
+            <span class="pill">Matches blog anchors for easy embedding</span>
+          </div>
+          <p class="hint">Values update live as you type — “Calculate” jumps to the results. All fields are editable.</p>
+        </div>
+      </section>
+
+      <aside class="card" aria-labelledby="quickRef">
+        <div class="pad">
+          <h3 id="quickRef">Default luxury scenario</h3>
+          <ul class="muted" style="margin-top:6px">
+            <li>Plan: <strong>Gold ($15k/yr)</strong></li>
+            <li>Purchases: <strong>1</strong> @ <strong>$3.0M</strong></li>
+            <li>Off‑market + negotiation: <strong>3.5%</strong> total savings per purchase</li>
+            <li>Renovations: <strong>$150k</strong> with <strong>15%</strong> savings</li>
+            <li>Time saved: <strong>200h</strong> valued at <strong>$300/h</strong></li>
+            <li>Vacancy: <strong>10 days</strong> saved on <strong>1 unit</strong> @ <strong>$900/day</strong></li>
+            <li>Portfolio: <strong>$10M</strong> with <strong>+2%/yr</strong> strategy lift</li>
+          </ul>
+          <hr style="border:none;border-top:1px solid var(--line); margin:14px 0;">
+          <p class="muted" style="margin-top:0">
+            The calculator estimates <em>quantified</em> value adds from concierge access, strategy, and operations.
+            Traditional agents typically do not deliver these ongoing gains.
+          </p>
+        </div>
+      </aside>
+    </div>
+
+    <section class="card" style="margin-top:18px" aria-labelledby="resultsTitle">
+      <div class="pad">
+        <h2 id="resultsTitle">Results</h2>
+
+        <div class="results" id="statGrid" aria-live="polite">
+          <div class="stat" id="invStat">
+            <h4>Annual Concierge Fee</h4>
+            <div class="val" id="totalInvestment">$0</div>
+            <div class="muted" id="invNote">Based on service level</div>
+          </div>
+          <div class="stat" id="retStat">
+            <h4>Total Quantified Benefits</h4>
+            <div class="val" id="totalReturns">$0</div>
+            <div class="muted" id="retNote">Purchases + sales + projects + time + rentals + portfolio</div>
+          </div>
+          <div class="stat" id="gainStat">
+            <h4>Net Annual Gain</h4>
+            <div class="val" id="netGain">$0</div>
+            <div class="muted">Benefits − Fee</div>
+          </div>
+          <div class="stat" id="roiStat">
+            <h4>ROI</h4>
+            <div class="val" id="roiPct">0%</div>
+            <div class="muted">Net Gain ÷ Fee</div>
+          </div>
+        </div>
+
+        <h3 style="margin-top:18px">Breakdown</h3>
+        <div class="tableWrap" style="overflow:auto">
+          <table aria-describedby="resultsTitle">
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th>Formula</th>
+                <th>Amount</th>
+              </tr>
+            </thead>
+            <tbody id="breakdownBody">
+              <!-- populated by JS -->
+            </tbody>
+            <tfoot>
+              <tr>
+                <td>Total Concierge Fee</td>
+                <td class="muted">Based on level or custom</td>
+                <td id="tfootInv">$0</td>
+              </tr>
+              <tr>
+                <td>Total Quantified Benefits</td>
+                <td class="muted">Sum of all categories</td>
+                <td id="tfootRet">$0</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <footer class="note">
+          This tool provides directional estimates for planning. It is not tax, legal, or financial advice.
+        </footer>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // Utilities
+    const $ = (id) => document.getElementById(id);
+    const fmt = (n) => n.toLocaleString(undefined, {style:'currency', currency:'USD', maximumFractionDigits:0});
+
+    const inputs = [
+      'serviceLevel','customFee','avgPrice','purchases','sales','offMarketPct','negotiationPct','saleUpliftPct',
+      'renoBudget','renoSavingsPct','hoursSaved','hourlyValue',
+      'rentalUnits','vacancyDaysSaved','dailyRent',
+      'portfolioValue','appreciationBoostPct'
+    ];
+
+    function getFee(){
+      const level = $('serviceLevel').value;
+      if(level === 'silver') return 8000;
+      if(level === 'gold') return 15000;
+      if(level === 'platinum') return 25000;
+      return Math.max(0, parseFloat($('customFee').value || '0'));
+    }
+
+    function num(id){
+      const el = $(id);
+      const v = parseFloat(String(el.value).replace(/,/g,''));
+      return isFinite(v) ? v : 0;
+    }
+
+    function shareLink(){
+      const params = new URLSearchParams();
+      params.set('serviceLevel', $('serviceLevel').value);
+      params.set('customFee', num('customFee'));
+      [
+        'avgPrice','purchases','sales','offMarketPct','negotiationPct','saleUpliftPct',
+        'renoBudget','renoSavingsPct','hoursSaved','hourlyValue',
+        'rentalUnits','vacancyDaysSaved','dailyRent',
+        'portfolioValue','appreciationBoostPct'
+      ].forEach(id => params.set(id, num(id)));
+      const url = location.origin + location.pathname + '?' + params.toString();
+      navigator.clipboard.writeText(url).then(() => alert('Sharable link copied to clipboard.')).catch(()=>{
+        prompt('Copy this link:', url);
+      });
+    }
+
+    function loadFromQuery(){
+      const q = new URLSearchParams(location.search);
+      let found = false;
+      const level = q.get('serviceLevel');
+      if(level){ $('serviceLevel').value = level; found = true; }
+      inputs.forEach(id => {
+        if(q.has(id) && id !== 'serviceLevel'){
+          $(id).value = q.get(id);
+          found = true;
+        }
+      });
+      toggleCustomFee();
+      return found;
+    }
+
+    function toggleCustomFee(){
+      const level = $('serviceLevel').value;
+      $('customFeeRow').style.display = (level === 'custom') ? '' : 'none';
+    }
+
+    function calc(){
+      // Read
+      const fee = getFee();
+
+      const avgPrice = num('avgPrice');
+      const purchases = Math.max(0, Math.floor(num('purchases')));
+      const sales = Math.max(0, Math.floor(num('sales')));
+      const offMarketPct = num('offMarketPct')/100;
+      const negotiationPct = num('negotiationPct')/100;
+      const saleUpliftPct = num('saleUpliftPct')/100;
+
+      const renoBudget = num('renoBudget');
+      const renoSavingsPct = num('renoSavingsPct')/100;
+
+      const hoursSaved = num('hoursSaved');
+      const hourlyValue = num('hourlyValue');
+
+      const rentalUnits = Math.max(0, Math.floor(num('rentalUnits')));
+      const vacancyDaysSaved = num('vacancyDaysSaved');
+      const dailyRent = num('dailyRent');
+
+      const portfolioValue = num('portfolioValue');
+      const appreciationBoostPct = num('appreciationBoostPct')/100;
+
+      // Benefits
+      const purchaseSavings = purchases * avgPrice * (offMarketPct + negotiationPct);
+      const saleUplift = sales * avgPrice * saleUpliftPct;
+      const renoSavings = renoBudget * renoSavingsPct;
+      const timeSavings = hoursSaved * hourlyValue;
+      const vacancySavings = rentalUnits * vacancyDaysSaved * dailyRent;
+      const portfolioLift = portfolioValue * appreciationBoostPct;
+
+      const returns = purchaseSavings + saleUplift + renoSavings + timeSavings + vacancySavings + portfolioLift;
+      const netGain = returns - fee;
+      const roi = fee > 0 ? (netGain / fee) : 0;
+
+      // Update stat cards
+      $('totalInvestment').textContent = fmt(fee);
+      $('totalReturns').textContent = fmt(returns);
+      $('netGain').textContent = fmt(netGain);
+      $('roiPct').textContent = (roi*100).toFixed(0) + '%';
+      $('gainStat').classList.toggle('neg', netGain < 0);
+      $('gainStat').classList.toggle('pos', netGain >= 0);
+
+      // Breakdown
+      const rows = [
+        ['Purchase price savings', 'Purchases × Avg Price × (Off‑Market% + Negotiation%)', fmt(purchaseSavings)],
+        ['Sale price uplift', 'Sales × Avg Price × Uplift%', fmt(saleUplift)],
+        ['Project/renovation savings', 'Improvements × Savings%', fmt(renoSavings)],
+        ['Time savings value', 'Hours × $/hour', fmt(timeSavings)],
+        ['Rental vacancy savings', 'Units × Days Saved × $/day', fmt(vacancySavings)],
+        ['Portfolio strategy lift', 'Portfolio × Boost%/year', fmt(portfolioLift)],
+      ];
+      const tb = $('breakdownBody');
+      tb.innerHTML = rows.map(([a,b,c]) => `<tr><td>${a}</td><td class="muted">${b}</td><td>${c}</td></tr>`).join('');
+      $('tfootInv').textContent = fmt(fee);
+      $('tfootRet').textContent = fmt(returns);
+
+      // Auto-resize for parent
+      queueMicrotask(resizeForParent);
+    }
+
+    function resetDefaults(){
+      const defaults = {
+        serviceLevel:'gold',
+        customFee:15000,
+        avgPrice:3000000,
+        purchases:1,
+        sales:0,
+        offMarketPct:2,
+        negotiationPct:1.5,
+        saleUpliftPct:1,
+        renoBudget:150000,
+        renoSavingsPct:15,
+        hoursSaved:200,
+        hourlyValue:300,
+        rentalUnits:1,
+        vacancyDaysSaved:10,
+        dailyRent:900,
+        portfolioValue:10000000,
+        appreciationBoostPct:2
+      };
+      for (const [k,v] of Object.entries(defaults)){ if($(k)) $(k).value = v; }
+      toggleCustomFee();
+      calc();
+      window.scrollTo({top:0, behavior:'smooth'});
+    }
+
+    function resizeForParent(){
+      const h = document.documentElement.scrollHeight;
+      try { window.parent.postMessage({type:'recn-iframe-height', height: h}, '*'); } catch(e){}
+    }
+
+    // Wire up
+    $('serviceLevel').addEventListener('change', ()=>{ toggleCustomFee(); calc(); });
+    [
+      'customFee','avgPrice','purchases','sales','offMarketPct','negotiationPct','saleUpliftPct',
+      'renoBudget','renoSavingsPct','hoursSaved','hourlyValue',
+      'rentalUnits','vacancyDaysSaved','dailyRent',
+      'portfolioValue','appreciationBoostPct'
+    ].forEach(id => { $(id).addEventListener('input', calc); $(id).addEventListener('change', calc); });
+    $('calcBtn').addEventListener('click', ()=>{ calc(); $('resultsTitle').scrollIntoView({behavior:'smooth', block:'start'}); resizeForParent(); });
+    $('resetBtn').addEventListener('click', resetDefaults);
+    $('shareBtn').addEventListener('click', shareLink);
+
+    const hadQuery = loadFromQuery();
+    calc();
+    if(!hadQuery){ resetDefaults(); }
+    window.addEventListener('load', resizeForParent);
+    window.addEventListener('resize', resizeForParent);
+    setTimeout(resizeForParent, 300);
+  </script>
+</body>
+</html>
