@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>💰 California → Nevada Cost Calculator (Reno Home Buying)</title>
+  <style>
+    :root {
+      --teal:#17a2b8; --mint:#20c997; --orange:#fd7e14; --red:#dc3545; --green:#28a745; --purple:#6f42c1;
+      --bg:#f8f9fa; --card:#ffffff; --border:#e5e7eb; --text:#1f2937; --muted:#6b7280;
+      --radius:14px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background:var(--bg); color:var(--text);
+    }
+    a { color: var(--teal); }
+    .wrap {
+      max-width: 1100px; margin: 0 auto; padding: 24px;
+    }
+    .hero {
+      background: linear-gradient(140deg, var(--teal), var(--mint));
+      color:#fff; padding:24px; border-radius: var(--radius);
+      display:flex; align-items:flex-start; gap:16px; flex-wrap:wrap;
+    }
+    .hero h1 { margin:0; font-size: 1.6rem; }
+    .badge { background:#fff; color:var(--teal); font-weight:700; padding:6px 10px; border-radius: 999px; font-size: .85rem; }
+    .grid {
+      display:grid; gap:16px;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    }
+    .card {
+      background:var(--card); border:1px solid var(--border); border-radius: var(--radius); padding:16px;
+      box-shadow: 0 10px 24px rgba(0,0,0,.06);
+    }
+    .card h3 { margin:0 0 8px 0; font-size:1rem; }
+    .sub { color:var(--muted); font-size:.9rem; margin:4px 0 12px; }
+    label { display:block; font-weight:600; font-size:.9rem; margin-bottom:6px; }
+    input, select {
+      width:100%; padding:12px; border:1px solid var(--border); border-radius:10px; font-size: .95rem; background:#fff;
+    }
+    .row2 { display:grid; grid-template-columns: 1fr 1fr; gap:8px; }
+    .btns { display:flex; gap:10px; flex-wrap:wrap; margin-top:8px; }
+    button, .ghost {
+      border:0; background: var(--teal); color:#fff; padding:12px 16px; border-radius:10px; font-weight:700; cursor:pointer;
+    }
+    button.secondary { background: var(--green); }
+    button.orange { background: var(--orange); color:#fff; }
+    button.red { background: var(--red); }
+    .ghost {
+      background:transparent; color:var(--teal); border:1px solid var(--teal);
+    }
+    .muted { color:var(--muted); }
+    .kpi { display:flex; align-items:baseline; justify-content:space-between; gap:10px; padding:10px 0; border-top:1px dashed var(--border); }
+    .kpi:first-child { border-top:0; }
+    .kpi b { font-size:1.15rem; }
+    .pill { display:inline-block; padding:4px 10px; border-radius:999px; font-size:.8rem; border:1px solid var(--border); }
+    .good { background: rgba(40,167,69,.08); color:#0f6a2d; border-color: rgba(40,167,69,.25); }
+    .warn { background: rgba(220,53,69,.08); color:#8a1621; border-color: rgba(220,53,69,.25); }
+    .foot { font-size:.85rem; color:var(--muted); margin-top:16px; }
+    .section-title { margin:18px 0 8px; font-size:1.05rem; color:#0b3d4b; }
+    .anchortarget { position:relative; inset-block-start:-80px; height:0; display:block; visibility:hidden; }
+    @media print {
+      .btns, .hero .badge { display:none !important; }
+      body { background:#fff; }
+      .card { box-shadow:none; }
+    }
+  </style>
+</head>
+<body>
+  <div id="cost-calculator" class="anchortarget"></div>
+  <div class="wrap">
+    <section class="hero">
+      <div style="flex:1 1 420px;">
+        <div class="badge">💰 California → Nevada Cost Calculator</div>
+        <h1>Reno Home Buying: Calculate California-to-Nevada Cost Savings</h1>
+        <p class="sub" style="color:#eaf8fb">Estimate annual & multi‑year savings from moving your home purchase from California to Reno, Nevada — including income tax, property tax, mortgage payments, and optional investing of savings.</p>
+        <div class="btns">
+          <button id="calcBtn" class="orange">Calculate Savings</button>
+          <button id="printBtn" class="ghost">Print / Save PDF</button>
+          <button id="copyBtn" class="secondary">Copy Shareable Link</button>
+          <button id="resetBtn" class="red">Reset</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-title">Inputs</div>
+    <div class="grid">
+      <div class="card">
+        <h3>Income & State Taxes</h3>
+        <div class="sub">Use your estimated effective state income tax rate for CA. Nevada has no state income tax.</div>
+        <label for="income">Annual taxable income (USD)</label>
+        <input id="income" type="number" value="150000" min="0" step="1000">
+        <div class="row2" style="margin-top:8px;">
+          <div>
+            <label for="caTaxRate">CA effective state income tax (%)</label>
+            <input id="caTaxRate" type="number" value="8.5" min="0" max="20" step="0.1">
+          </div>
+          <div>
+            <label for="nvTaxRate">NV state income tax (%)</label>
+            <input id="nvTaxRate" type="number" value="0" min="0" max="0" step="0.1" disabled>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Home Prices</h3>
+        <div class="sub">Estimate comparable home cost in CA vs. your Reno target.</div>
+        <label for="caPrice">CA comparable home price</label>
+        <input id="caPrice" type="number" value="1200000" min="0" step="1000">
+        <label for="nvPrice" style="margin-top:8px;">Reno/NV target home price</label>
+        <input id="nvPrice" type="number" value="750000" min="0" step="1000">
+        <div class="row2" style="margin-top:8px;">
+          <div>
+            <label for="downPct">Down payment (%)</label>
+            <input id="downPct" type="number" value="20" min="0" max="100" step="0.5">
+          </div>
+          <div>
+            <label for="rate">Mortgage rate (%)</label>
+            <input id="rate" type="number" value="6.75" min="0" max="20" step="0.05">
+          </div>
+        </div>
+        <div class="row2" style="margin-top:8px;">
+          <div>
+            <label for="term">Term (years)</label>
+            <input id="term" type="number" value="30" min="5" max="40" step="1">
+          </div>
+          <div>
+            <label for="pmi">Monthly HOA/PMI difference (optional)</label>
+            <input id="pmi" type="number" value="0" min="-2000" max="2000" step="10">
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Property Taxes & Other</h3>
+        <div class="row2">
+          <div>
+            <label for="caPropRate">CA property tax rate (%)</label>
+            <input id="caPropRate" type="number" value="1.10" min="0" max="5" step="0.01">
+          </div>
+          <div>
+            <label for="nvPropRate">NV property tax rate (%)</label>
+            <input id="nvPropRate" type="number" value="0.55" min="0" max="5" step="0.01">
+          </div>
+        </div>
+        <label for="otherAnnual" style="margin-top:8px;">Other annual savings (commute, insurance, utilities)</label>
+        <input id="otherAnnual" type="number" value="3000" min="-10000" step="100">
+        <div class="row2" style="margin-top:8px;">
+          <div>
+            <label for="moving">One-time moving/transition costs</label>
+            <input id="moving" type="number" value="10000" min="0" step="100">
+          </div>
+          <div>
+            <label for="horizon">Horizon (years)</label>
+            <input id="horizon" type="number" value="10" min="1" max="40" step="1">
+          </div>
+        </div>
+        <div class="row2" style="margin-top:8px;">
+          <div>
+            <label for="returnRate">Assumed investment return (%)</label>
+            <input id="returnRate" type="number" value="5" min="0" max="20" step="0.1">
+          </div>
+          <div>
+            <label for="inflation">Inflation (for real $ calc) (%)</label>
+            <input id="inflation" type="number" value="2.5" min="0" max="10" step="0.1">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title">Results</div>
+    <div class="grid">
+      <div class="card" id="annualCard">
+        <h3>📆 Annual Savings</h3>
+        <div class="kpi"><span>Income tax savings</span><b id="kIncome">$0</b></div>
+        <div class="kpi"><span>Property tax savings</span><b id="kProp">$0</b></div>
+        <div class="kpi"><span>Mortgage P&I savings</span><b id="kMort">$0</b></div>
+        <div class="kpi"><span>Other annual savings</span><b id="kOther">$0</b></div>
+        <div class="kpi"><span><b>Total annual savings</b></span><b id="kAnnual" class="pill good">$0</b></div>
+        <div class="foot">Mortgage savings compares P&I on CA vs NV prices at the same rate/term plus any HOA/PMI difference you enter.</div>
+      </div>
+
+      <div class="card" id="firstYearCard">
+        <h3>🎯 First-Year Impact</h3>
+        <div class="kpi"><span>One-time moving costs</span><b id="kMove" class="pill warn">-$0</b></div>
+        <div class="kpi"><span>Down payment freed (CA − NV)</span><b id="kFreed">$0</b></div>
+        <div class="kpi"><span><b>Net first-year savings</b></span><b id="kNet1" class="pill good">$0</b></div>
+        <div class="foot">“Freed” down payment is capital preserved by buying the lower‑priced NV home at the same % down.</div>
+      </div>
+
+      <div class="card" id="multiCard">
+        <h3>⏳ Multi‑Year Value</h3>
+        <div class="kpi"><span>2025‑Adjusted total (real $)</span><b id="kCumReal">$0</b></div>
+        <div class="kpi"><span>Future value if savings invested</span><b id="kFV">$0</b></div>
+        <div class="kpi"><span><b>Total value (incl. freed capital growth)</b></span><b id="kTotalFV" class="pill good">$0</b></div>
+        <div class="foot">Assumes annual savings invested at your return rate; includes growth of freed down payment.</div>
+      </div>
+
+      <div class="card">
+        <h3>Breakdown</h3>
+        <div class="sub">Modeled payments & assumptions</div>
+        <div class="kpi"><span>CA loan amount</span><b id="bCALoan">$0</b></div>
+        <div class="kpi"><span>NV loan amount</span><b id="bNVLoan">$0</b></div>
+        <div class="kpi"><span>CA monthly P&I</span><b id="bCAMonth">$0</b></div>
+        <div class="kpi"><span>NV monthly P&I</span><b id="bNVMonth">$0</b></div>
+        <div class="kpi"><span>Annual property taxes (CA vs NV)</span><b id="bPropPair">$0 / $0</b></div>
+      </div>
+    </div>
+
+    <p class="foot">This tool is for illustrative education only and is not tax, legal, or financial advice. Enter your own values and consult qualified pros for your situation.</p>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const fmtC = (n) => (isFinite(n) ? n : 0).toLocaleString(undefined, {style:'currency', currency:'USD', maximumFractionDigits:0});
+    const clamp = (v,min,max) => Math.min(Math.max(v,min),max);
+    function getVals() {
+      const vals = {
+        income: +$('income').value || 0,
+        caTaxRate: (+$('caTaxRate').value || 0)/100,
+        nvTaxRate: (+$('nvTaxRate').value || 0)/100,
+        caPrice: +$('caPrice').value || 0,
+        nvPrice: +$('nvPrice').value || 0,
+        downPct: (+$('downPct').value || 0)/100,
+        rate: (+$('rate').value || 0)/100,
+        term: +$('term').value || 30,
+        pmi: +$('pmi').value || 0,
+        caPropRate: (+$('caPropRate').value || 0)/100,
+        nvPropRate: (+$('nvPropRate').value || 0)/100,
+        otherAnnual: +$('otherAnnual').value || 0,
+        moving: +$('moving').value || 0,
+        horizon: +$('horizon').value || 10,
+        returnRate: (+$('returnRate').value || 0)/100,
+        inflation: (+$('inflation').value || 0)/100,
+      };
+      // basic guards
+      vals.term = clamp(vals.term, 5, 40);
+      return vals;
+    }
+    function pmt(principal, rateAnnual, years) {
+      const n = years*12;
+      const r = rateAnnual/12;
+      if (r === 0) return principal/n;
+      return principal * r / (1 - Math.pow(1+r, -n));
+    }
+    function fv_annuity(payment, r, n) {
+      if (r === 0) return payment * n;
+      return payment * (Math.pow(1+r, n) - 1) / r;
+    }
+    function update() {
+      const v = getVals();
+      // Taxes
+      const incomeTaxCA = v.income * v.caTaxRate;
+      const incomeTaxNV = v.income * v.nvTaxRate; // usually 0
+      const incomeTaxSavings = Math.max(incomeTaxCA - incomeTaxNV, 0);
+
+      // Mortgage
+      const caLoan = Math.max(v.caPrice * (1 - v.downPct), 0);
+      const nvLoan = Math.max(v.nvPrice * (1 - v.downPct), 0);
+      const caPI = pmt(caLoan, v.rate, v.term);
+      const nvPI = pmt(nvLoan, v.rate, v.term);
+      const mortMonthlyDiff = Math.max(caPI - nvPI + (v.pmi || 0), 0); // if NV cheaper, savings positive
+      const mortAnnualSavings = mortMonthlyDiff * 12;
+
+      // Property tax
+      const caProp = v.caPrice * v.caPropRate;
+      const nvProp = v.nvPrice * v.nvPropRate;
+      const propSavings = Math.max(caProp - nvProp, 0);
+
+      // Annual total
+      const annualSavings = incomeTaxSavings + mortAnnualSavings + propSavings + v.otherAnnual;
+
+      // First year
+      const freedDown = Math.max(v.caPrice*v.downPct - v.nvPrice*v.downPct, 0);
+      const netFirstYear = annualSavings - v.moving;
+
+      // Multi-year (nominal)
+      const n = Math.max(1, Math.min(40, Math.round(v.horizon)));
+      const r = v.returnRate;
+      const inf = v.inflation;
+      const cumNominal = annualSavings * n - v.moving;
+
+      // Real dollars (approx by discounting using inflation)
+      const realRate = ((1+r)/(1+inf))-1;
+      const discount = (inf>0 ? ( (1 - Math.pow(1+inf, -n)) / inf ) : n ); // rough PV factor for equal annual savings
+      const cumReal = annualSavings * discount - v.moving * Math.pow(1+inf, -1); // approximate
+
+      // Future value if invested
+      const fvSavings = fv_annuity(annualSavings, r, n);
+      const fvFreed = freedDown * Math.pow(1+r, n);
+      const totalFV = fvSavings + fvFreed - v.moving; // moving considered outflow now
+
+      // Render
+      $('kIncome').textContent = fmtC(incomeTaxSavings);
+      $('kProp').textContent = fmtC(propSavings);
+      $('kMort').textContent = fmtC(mortAnnualSavings);
+      $('kOther').textContent = fmtC(v.otherAnnual);
+      $('kAnnual').textContent = fmtC(annualSavings);
+
+      $('kMove').textContent = '-' + fmtC(v.moving).replace('$','$');
+      $('kFreed').textContent = fmtC(freedDown);
+      $('kNet1').textContent = fmtC(netFirstYear);
+
+      $('kCumReal').textContent = fmtC(cumReal);
+      $('kFV').textContent = fmtC(fvSavings);
+      $('kTotalFV').textContent = fmtC(totalFV);
+
+      $('bCALoan').textContent = fmtC(caLoan);
+      $('bNVLoan').textContent = fmtC(nvLoan);
+      $('bCAMonth').textContent = fmtC(caPI);
+      $('bNVMonth').textContent = fmtC(nvPI);
+      $('bPropPair').textContent = fmtC(caProp) + ' / ' + fmtC(nvProp);
+
+      // update URL
+      const params = new URLSearchParams({
+        income:v.income, caTax:v.caTaxRate*100, caPrice:v.caPrice, nvPrice:v.nvPrice, down:v.downPct*100,
+        rate:v.rate*100, term:v.term, pmi:v.pmi, caProp:v.caPropRate*100, nvProp:v.nvPropRate*100,
+        other:v.otherAnnual, moving:v.moving, horizon:v.horizon, ret:v.returnRate*100, inf:v.inflation*100
+      });
+      const hash = '#cost-calculator?' + params.toString();
+      history.replaceState(null, '', hash);
+    }
+    function loadFromURL() {
+      const q = location.hash.split('?')[1];
+      if (!q) return;
+      const p = new URLSearchParams(q);
+      const set = (id, key, factor=1) => { if (p.get(key) !== null) $(id).value = +p.get(key) * factor; };
+      set('income','income');
+      set('caTaxRate','caTax');
+      set('caPrice','caPrice');
+      set('nvPrice','nvPrice');
+      set('downPct','down');
+      set('rate','rate');
+      set('term','term');
+      set('pmi','pmi');
+      set('caPropRate','caProp');
+      set('nvPropRate','nvProp');
+      set('otherAnnual','other');
+      set('moving','moving');
+      set('horizon','horizon');
+      set('returnRate','ret');
+      set('inflation','inf');
+    }
+    function copyLink() {
+      const url = location.href;
+      navigator.clipboard.writeText(url).then(()=>{
+        const btn = document.getElementById('copyBtn');
+        const prev = btn.textContent;
+        btn.textContent = 'Link copied!';
+        setTimeout(()=> btn.textContent = prev, 1600);
+      });
+    }
+
+    // wire up
+    ['income','caTaxRate','caPrice','nvPrice','downPct','rate','term','pmi','caPropRate','nvPropRate','otherAnnual','moving','horizon','returnRate','inflation']
+      .forEach(id => $(id).addEventListener('input', update));
+    $('calcBtn').addEventListener('click', update);
+    $('printBtn').addEventListener('click', () => window.print());
+    $('copyBtn').addEventListener('click', copyLink);
+    $('resetBtn').addEventListener('click', () => { location.hash='#cost-calculator'; location.reload(); });
+
+    loadFromURL();
+    update();
+  </script>
+</body>
+</html>
