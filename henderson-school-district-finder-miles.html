@@ -1,0 +1,257 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Henderson School District Finder</title>
+  <style>
+    :root{--brand:#28a745;--bg:#f8f9fa;--ink:#1f2937}
+    html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
+    #app{display:grid;grid-template-columns:360px 1fr;height:100vh;gap:0}
+    aside{background:var(--bg);padding:16px;border-right:1px solid #e5e7eb;overflow:auto}
+    h1{margin:4px 0 10px;font-size:18px;color:#0f172a}
+    .row{display:flex;gap:8px;align-items:center}
+    .input{flex:1;display:flex;gap:8px}
+    input[type="text"]{width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:10px}
+    button,select{padding:10px 14px;border-radius:10px;border:1px solid #d1d5db;background:white;cursor:pointer}
+    button.primary{background:var(--brand);color:white;border-color:var(--brand)}
+    .chip{display:inline-flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid #d1d5db;border-radius:999px;background:white;margin:4px 6px 0 0}
+    .chip input{margin:0}
+    .card{background:white;border:1px solid #e5e7eb;border-radius:12px;padding:12px;margin:12px 0}
+    #map{width:100%;height:100%}
+    .footer{color:#6b7280;font-size:12px}
+    .btn-muted{background:#f3f4f6}
+    .stack{display:flex;flex-direction:column;gap:10px}
+  </style>
+</head>
+<body>
+<div id="app">
+  <aside>
+    <h1>Henderson School District Finder</h1>
+    <div class="card">
+      <h3 style="margin:6px 0 8px">Search area</h3>
+      <div class="stack">
+        <div class="row input">
+          <input id="address" type="text" placeholder="Search address or place…" />
+          <button id="locateBtn" title="Use my location">📍</button>
+        </div>
+        <div class="row">
+          <select id="radius">
+            <option value="1">1 mi</option>
+            <option value="2">2 mi</option>
+            <option value="3">3 mi</option>
+            <option value="5" selected>5 mi</option>
+            <option value="8">8 mi</option>
+            <option value="10">10 mi</option>
+            <option value="15">15 mi</option>
+            <option value="20">20 mi</option>
+          </select>
+          <button id="searchBtn" class="primary">Search</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin:6px 0 8px">School levels</h3>
+      <label class="chip"><input id="chkElementary" type="checkbox" checked>Elementary</label>
+      <label class="chip"><input id="chkMiddle" type="checkbox" checked>Middle</label>
+      <label class="chip"><input id="chkHigh" type="checkbox" checked>High</label>
+      <label class="chip" style="margin-top:10px"><input id="chkRating" type="checkbox" checked>Show 4.0★+ ratings</label>
+      <div class="row" style="margin-top:10px">
+        <button id="refreshBtn" class="btn-muted">Refresh results</button>
+        <button id="clearBtn" class="btn-muted">Clear markers</button>
+      </div>
+      <p class="footer" style="margin-top:10px">
+        Ratings shown are Google user ratings. For official attendance zones/assignments, confirm with CCSD.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3 style="margin:6px 0 8px">Optional: Attendance zones</h3>
+      <div class="stack">
+        <input id="kmlUrl" type="text" placeholder="Paste KML or GeoJSON URL (public)"/>
+        <div class="row">
+          <button id="loadKml" class="btn-muted">Load</button>
+          <button id="toggleKml" class="btn-muted">Toggle</button>
+          <button id="removeKml" class="btn-muted">Remove</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin:6px 0 8px">Share</h3>
+      <div class="row">
+        <button id="copyLink" class="btn-muted">Copy link</button>
+      </div>
+    </div>
+  </aside>
+
+  <div id="map"></div>
+</div>
+
+<script>
+  // === Replace with your key and ensure Maps JavaScript API + Places + Geocoding are enabled ===
+  const GOOGLE_MAPS_API_KEY = "YOUR_GOOGLE_MAPS_API_KEY";
+
+  // Convert miles to meters
+  const miToM = (mi)=> mi * 1609.344;
+
+  let map, placesService, geocoder, circle;
+  let markers = [];
+  let info;
+  let kmlLayer = null;
+
+  function initMap(){
+    const henderson = {lat:36.0397, lng:-114.9819};
+    map = new google.maps.Map(document.getElementById('map'), {
+      center: henderson,
+      zoom: 12,
+      mapTypeControl:false,
+      streetViewControl:false
+    });
+    placesService = new google.maps.places.PlacesService(map);
+    geocoder = new google.maps.Geocoder();
+    info = new google.maps.InfoWindow();
+
+    const addrInput = document.getElementById('address');
+    const autocomplete = new google.maps.places.Autocomplete(addrInput, {fields:["geometry","name"]});
+    autocomplete.addListener("place_changed",()=>{
+      const p = autocomplete.getPlace();
+      if(!p.geometry) return;
+      map.panTo(p.geometry.location);
+      map.setZoom(13);
+      searchSchools();
+    });
+
+    document.getElementById('searchBtn').onclick = searchSchools;
+    document.getElementById('locateBtn').onclick = () => {
+      if(navigator.geolocation){
+        navigator.geolocation.getCurrentPosition((pos)=>{
+          const ll = {lat:pos.coords.latitude, lng:pos.coords.longitude};
+          map.panTo(ll); map.setZoom(13);
+          new google.maps.Marker({position:ll,map,icon:{path:google.maps.SymbolPath.CIRCLE,scale:6,fillColor:"#0ea5e9",fillOpacity:1,strokeColor:"#fff",strokeWeight:2}});
+          searchSchools();
+        });
+      }
+    };
+    document.getElementById('refreshBtn').onclick = searchSchools;
+    document.getElementById('clearBtn').onclick = clearMarkers;
+
+    // KML controls
+    document.getElementById('loadKml').onclick = () => {
+      const url = document.getElementById('kmlUrl').value.trim();
+      if(!url) return;
+      if(kmlLayer) kmlLayer.setMap(null);
+      if(url.toLowerCase().endsWith(".json") || url.toLowerCase().endsWith(".geojson")){
+        fetch(url).then(r=>r.json()).then(geo => {
+          const dataLayer = new google.maps.Data({map});
+          dataLayer.addGeoJson(geo);
+          kmlLayer = { setMap: (m) => dataLayer.setMap(m), __isData:true, dataLayer };
+        }).catch(console.error);
+      }else{
+        kmlLayer = new google.maps.KmlLayer({url, map, preserveViewport:true});
+      }
+    };
+    document.getElementById('toggleKml').onclick = () => {
+      if(kmlLayer){ kmlLayer.setMap(kmlLayer.getMap ? (kmlLayer.getMap() ? null: map) : (kmlLayer.__isData && kmlLayer.dataLayer.getMap() ? null : map)); }
+    };
+    document.getElementById('removeKml').onclick = () => {
+      if(kmlLayer){ kmlLayer.setMap && kmlLayer.setMap(null); if(kmlLayer.__isData) kmlLayer.dataLayer.setMap(null); kmlLayer=null; }
+    };
+
+    document.getElementById('copyLink').onclick = () => {
+      const c = map.getCenter();
+      const rmi = document.getElementById('radius').value;
+      const u = new URL(window.location.href);
+      u.searchParams.set('lat', c.lat().toFixed(5));
+      u.searchParams.set('lng', c.lng().toFixed(5));
+      u.searchParams.set('r', rmi);
+      navigator.clipboard.writeText(u.toString());
+      alert("Link copied!");
+    };
+
+    // If URL has lat/lng, restore
+    const params = new URLSearchParams(window.location.search);
+    const lat = parseFloat(params.get('lat'));
+    const lng = parseFloat(params.get('lng'));
+    const r = params.get('r');
+    if(!isNaN(lat) && !isNaN(lng)){ map.setCenter({lat,lng}); map.setZoom(13); }
+    if(r){ document.getElementById('radius').value = r; }
+  }
+
+  function clearMarkers(){
+    markers.forEach(m=>m.setMap(null));
+    markers = [];
+    if(circle) circle.setMap(null);
+  }
+
+  function levelPredicate(name){
+    const showElem = document.getElementById('chkElementary').checked;
+    const showMid  = document.getElementById('chkMiddle').checked;
+    const showHigh = document.getElementById('chkHigh').checked;
+    const n = (name||"").toLowerCase();
+    const isElem = n.includes("elementary");
+    const isMid  = n.includes("middle") || n.includes("junior high") || n.includes("jr high");
+    const isHigh = n.includes("high");
+    return (showElem && isElem) || (showMid && isMid) || (showHigh && isHigh) || (!isElem && !isMid && !isHigh && (showElem||showMid||showHigh));
+  }
+
+  function searchSchools(){
+    clearMarkers();
+    const center = map.getCenter();
+    const radiusMi = parseFloat(document.getElementById('radius').value);
+    const radiusMeters = miToM(radiusMi);
+
+    circle = new google.maps.Circle({strokeColor:"#10b981", strokeOpacity:0.8, strokeWeight:2, fillColor:"#10b981", fillOpacity:0.08, map, center, radius: radiusMeters});
+
+    const request = {
+      location: center,
+      radius: radiusMeters,
+      type: "school"
+    };
+
+    placesService.nearbySearch(request, (results, status, pagination) => {
+      if(status !== google.maps.places.PlacesServiceStatus.OK || !results) return;
+      const minRating = document.getElementById('chkRating').checked ? 4.0 : 0;
+      results.filter(p => (p.rating||0) >= minRating && levelPredicate(p.name)).forEach(place => addSchoolMarker(place));
+      if(pagination && pagination.hasNextPage) {
+        setTimeout(()=>pagination.nextPage(), 800);
+      }
+    });
+  }
+
+  function addSchoolMarker(place){
+    const marker = new google.maps.Marker({map, position: place.geometry.location, title: place.name});
+    marker.addListener('click', () => {
+      const dir = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(place.name)}&destination_place_id=${place.place_id}`;
+      const homes = `https://www.google.com/maps/search/homes+for+sale/@${place.geometry.location.lat()},${place.geometry.location.lng()},14z`;
+      info.setContent(`
+        <div style="min-width:260px">
+          <div style="font-weight:600">${place.name}</div>
+          <div>${(place.vicinity||"")}</div>
+          <div>${"⭐".repeat(Math.round(place.rating||0))} ${(place.rating||"-")}</div>
+          <div style="margin-top:8px;display:flex;gap:8px">
+            <a target="_blank" href="${dir}">Directions</a>
+            <a target="_blank" href="${homes}">Homes near here</a>
+          </div>
+        </div>`);
+      info.open({anchor:marker, map});
+    });
+    markers.push(marker);
+  }
+
+  // Load the Google Maps JS API (explicit key in the URL)
+  (function loadScript(){
+    const s = document.createElement('script');
+    s.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places,geometry&callback=initMap`;
+    s.defer = true; s.async = true;
+    s.onerror = () => {
+      const el = document.getElementById('map');
+      el.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#6b7280">Failed to load Google Maps. Check your API key and domain restrictions.</div>';
+    };
+    document.head.appendChild(s);
+  })();
+</script>
+</body>
+</html>
