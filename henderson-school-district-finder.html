@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Henderson School District Finder</title>
+  <style>
+    :root{--primary:#28a745;--accent:#17a2b8;--danger:#dc3545;--bg:#f8f9fa;}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Helvetica,Arial,sans-serif;background:#fff;color:#111}
+    header{padding:14px 18px;background:linear-gradient(135deg,var(--primary),#20c997);color:#fff}
+    header h1{margin:0;font-size:18px;font-weight:700;letter-spacing:.2px}
+    .wrap{display:grid;grid-template-columns:320px 1fr;gap:16px;min-height:100vh}
+    .panel{padding:14px;background:var(--bg);border-right:1px solid #e5e7eb}
+    .panel h2{font-size:16px;margin:0 0 8px}
+    .panel .sub{font-size:12px;color:#555;margin:0 0 10px}
+    .ctrl{margin:10px 0 14px}
+    label{display:block;font-size:13px;margin:6px 0 6px}
+    input[type="text"],select{width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:14px}
+    .row{display:flex;gap:8px}
+    .btn{display:inline-flex;align-items:center;gap:6px;padding:10px 12px;border-radius:8px;border:1px solid #d1d5db;background:#fff;cursor:pointer;font-weight:600}
+    .btn.primary{background:var(--primary);border-color:var(--primary);color:#fff}
+    .btn.ghost{background:#fff}
+    .btn.small{padding:6px 9px;font-size:12px}
+    .pill{display:inline-flex;align-items:center;gap:6px;border:1px solid #cbd5e1;border-radius:999px;padding:7px 10px;background:#fff;cursor:pointer;font-size:13px}
+    .pill input{accent-color:var(--primary)}
+    .group{border:1px solid #e5e7eb;border-radius:10px;background:#fff;padding:10px;margin:12px 0}
+    .note{font-size:12px;color:#667085;line-height:1.4}
+    #map{width:100%;height:100vh;min-height:640px}
+    footer{padding:10px 14px;font-size:12px;color:#6b7280;border-top:1px solid #eee}
+    .kml-row{display:flex;gap:6px}
+    .kml-row input{flex:1}
+    .badge{display:inline-block;background:#eefbf3;color:#166534;border:1px solid #ccead5;padding:2px 8px;border-radius:999px;font-size:11px;margin-left:6px}
+    .divider{height:1px;background:#e5e7eb;margin:12px 0}
+  </style>
+</head>
+<body>
+<header>
+  <h1>🏫 Henderson School District Finder</h1>
+</header>
+<div class="wrap">
+  <aside class="panel">
+    <h2>Search area</h2>
+    <p class="sub">Center the map on an address or use your current location.</p>
+    <div class="ctrl row">
+      <input id="address" type="text" placeholder="Enter Henderson address or neighborhood">
+      <button class="btn small" id="locateBtn" title="Use my location">📍</button>
+    </div>
+    <div class="ctrl row">
+      <select id="radiusKm">
+        <option value="1">1 km</option>
+        <option value="2">2 km</option>
+        <option value="5" selected>5 km</option>
+        <option value="8">8 km</option>
+        <option value="12">12 km</option>
+      </select>
+      <button id="goBtn" class="btn primary">Search</button>
+    </div>
+
+    <div class="group">
+      <h2>School levels</h2>
+      <label class="pill"><input type="checkbox" id="el" checked> Elementary</label>
+      <label class="pill"><input type="checkbox" id="ms" checked> Middle</label>
+      <label class="pill"><input type="checkbox" id="hs" checked> High</label>
+      <div class="divider"></div>
+      <label class="pill"><input type="checkbox" id="min4" checked> Show 4.0★+ user ratings</label>
+      <p class="note">Ratings shown are Google user ratings (community reviews). For official attendance boundaries, confirm with CCSD.</p>
+      <div class="row" style="margin-top:8px">
+        <button id="refreshBtn" class="btn">🔄 Refresh results</button>
+        <button id="clearBtn" class="btn ghost">♻️ Clear markers</button>
+      </div>
+    </div>
+
+    <div class="group">
+      <h2>Optional: Attendance zones</h2>
+      <p class="note">If you have a KML or GeoJSON URL for CCSD attendance zones, paste it and load as an overlay.</p>
+      <div class="kml-row">
+        <input id="overlayUrl" type="text" placeholder="https://example.com/ccsd-elementary.kml or .geojson">
+        <button id="loadOverlayBtn" class="btn small">Load</button>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <button id="toggleOverlayBtn" class="btn small">👁️ Toggle</button>
+        <button id="removeOverlayBtn" class="btn small">🗑️ Remove</button>
+      </div>
+    </div>
+
+    <div class="group">
+      <h2>Share</h2>
+      <div class="row">
+        <button id="shareBtn" class="btn small">🔗 Copy link</button>
+        <span id="shareStatus" class="badge" style="display:none">Copied</span>
+      </div>
+      <p class="note">Link preserves map center, zoom, radius, and filter toggles.</p>
+    </div>
+  </aside>
+
+  <main id="map"></main>
+</div>
+
+<footer>
+  <div>Tip: Click a school marker for directions and a one-click link to “homes for sale near this school”.</div>
+</footer>
+
+<script>
+  const DEFAULT_CENTER = {lat: 36.0395, lng: -114.9817};
+  const DEFAULT_ZOOM = 12;
+  const params = new URLSearchParams(location.hash.slice(1) || location.search.slice(1));
+  const state = {
+    center: {
+      lat: parseFloat(params.get('lat')) || DEFAULT_CENTER.lat,
+      lng: parseFloat(params.get('lng')) || DEFAULT_CENTER.lng
+    },
+    zoom: parseInt(params.get('z') || DEFAULT_ZOOM, 10),
+    radiusKm: parseFloat(params.get('r') || 5),
+    el: params.get('el') !== '0',
+    ms: params.get('ms') !== '0',
+    hs: params.get('hs') !== '0',
+    min4: params.get('min4') !== '0'
+  };
+
+  let map, placesService, geocoder, circle;
+  let markers = [];
+  let overlayLayer = null;
+  let clusterer;
+
+  function updateControlsFromState() {
+    document.getElementById('radiusKm').value = String(state.radiusKm);
+    document.getElementById('el').checked = state.el;
+    document.getElementById('ms').checked = state.ms;
+    document.getElementById('hs').checked = state.hs;
+    document.getElementById('min4').checked = state.min4;
+  }
+
+  function buildShare() {
+    const p = new URLSearchParams({
+      lat: map.getCenter().lat().toFixed(6),
+      lng: map.getCenter().lng().toFixed(6),
+      z: map.getZoom(),
+      r: document.getElementById('radiusKm').value,
+      el: document.getElementById('el').checked ? 1 : 0,
+      ms: document.getElementById('ms').checked ? 1 : 0,
+      hs: document.getElementById('hs').checked ? 1 : 0,
+      min4: document.getElementById('min4').checked ? 1 : 0
+    });
+    return location.href.split('#')[0] + '#' + p.toString();
+  }
+
+  function copyShare() {
+    const url = buildShare();
+    navigator.clipboard.writeText(url).then(() => {
+      const badge = document.getElementById('shareStatus');
+      badge.style.display='inline-block';
+      setTimeout(()=>badge.style.display='none', 1500);
+    });
+  }
+
+  function clearMarkers() {
+    if (clusterer) clusterer.clearMarkers();
+    markers.forEach(m=>m.setMap(null));
+    markers = [];
+  }
+
+  function markerIcon(color) {
+    return {
+      url: `https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|${color.replace('#','')}`,
+      scaledSize: new google.maps.Size(21,34)
+    };
+  }
+
+  function addMarker(place, color) {
+    const m = new google.maps.Marker({
+      position: place.geometry.location,
+      map,
+      icon: markerIcon(color),
+      title: place.name
+    });
+
+    const rating = (place.rating!=null)? `⭐ ${place.rating} (${place.user_ratings_total||0})` : 'No rating';
+    const gmapsLink = `https://www.google.com/maps/place/?q=place_id:${place.place_id}`;
+    const homesQuery = encodeURIComponent(`homes for sale near ${place.name} ${place.vicinity||''}`);
+    const homesLink = `https://www.google.com/maps/search/${homesQuery}`;
+
+    const content = `
+      <div style="font-family:system-ui,Roboto,Arial,sans-serif;max-width:260px">
+        <div style="font-weight:700;margin-bottom:4px">${place.name}</div>
+        <div style="font-size:12px;color:#444;margin-bottom:6px">${place.vicinity||''}</div>
+        <div style="font-size:12px;margin-bottom:8px">${rating}</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <a target="_blank" href="${gmapsLink}" style="text-decoration:none;padding:6px 8px;border:1px solid #ddd;border-radius:6px">View in Maps</a>
+          <a target="_blank" href="${homesLink}" style="text-decoration:none;padding:6px 8px;border:1px solid #ddd;border-radius:6px">Homes near here</a>
+        </div>
+      </div>
+    `;
+    const infowin = new google.maps.InfoWindow({content});
+    m.addListener('click',()=>infowin.open(map, m));
+    markers.push(m);
+  }
+
+  function searchNearby(keyword, color) {
+    const center = map.getCenter();
+    const radius = parseFloat(document.getElementById('radiusKm').value) * 1000;
+    const request = {
+      location: center,
+      radius,
+      type: 'school',
+      keyword
+    };
+    return new Promise((resolve) => {
+      placesService.nearbySearch(request, (results, status, pagination) => {
+        if (status !== google.maps.places.PlacesServiceStatus.OK || !results) {
+          resolve([]);
+          return;
+        }
+        const showMin4 = document.getElementById('min4').checked;
+        results.forEach(place => {
+          if (showMin4 && (place.rating || 0) < 4.0) return;
+          addMarker(place, color);
+        });
+        if (pagination && pagination.hasNextPage) {
+          setTimeout(()=>pagination.nextPage(), 1200);
+        }
+        resolve(results);
+      });
+    });
+  }
+
+  async function runSearch() {
+    clearMarkers();
+    circle && circle.setMap(null);
+    circle = new google.maps.Circle({
+      map,
+      center: map.getCenter(),
+      radius: parseFloat(document.getElementById('radiusKm').value) * 1000,
+      fillColor:'#28a74533', strokeColor:'#28a745', strokeOpacity:.8, strokeWeight:1
+    });
+
+    const wantEl = document.getElementById('el').checked;
+    const wantMs = document.getElementById('ms').checked;
+    const wantHs = document.getElementById('hs').checked;
+
+    const tasks = [];
+    if (wantEl) tasks.push(searchNearby('elementary', '#2ca02c'));
+    if (wantMs) tasks.push(searchNearby('middle school', '#17a2b8'));
+    if (wantHs) tasks.push(searchNearby('high school', '#dc3545'));
+
+    await Promise.all(tasks);
+
+    if (markers.length && window.MarkerClusterer) {
+      clusterer = new MarkerClusterer({ map, markers });
+    }
+  }
+
+  async function geocodeAddress(addr) {
+    return new Promise((resolve,reject)=>{
+      geocoder.geocode({address: addr, componentRestrictions:{country:'US', administrativeArea:'NV'}},
+        (results,status)=>{
+          if (status==='OK' && results[0]) resolve(results[0].geometry.location);
+          else reject(status);
+        });
+    });
+  }
+
+  function loadOverlay(url) {
+    if (overlayLayer) {
+      overlayLayer.setMap && overlayLayer.setMap(null);
+      overlayLayer = null;
+    }
+    if (!url) return;
+    if (url.endsWith('.kml') || url.includes('.kml')) {
+      overlayLayer = new google.maps.KmlLayer({ url, map, preserveViewport:true, suppressInfoWindows:false });
+    } else {
+      overlayLayer = new google.maps.Data({ map });
+      fetch(url).then(r=>r.json()).then(geo=>{
+        overlayLayer.addGeoJson(geo);
+        overlayLayer.setStyle({ fillColor:'#4285f433', strokeColor:'#4285f4', strokeWeight:1 });
+      }).catch(()=>alert('Could not load GeoJSON'));
+    }
+  }
+
+  window.initSchoolMap = () => {
+    updateControlsFromState();
+    map = new google.maps.Map(document.getElementById('map'), {
+      center: state.center, zoom: state.zoom, mapId:'DEMO_MAP_ID'
+    });
+    geocoder = new google.maps.Geocoder();
+    placesService = new google.maps.places.PlacesService(map);
+
+    const input = document.getElementById('address');
+    const ac = new google.maps.places.Autocomplete(input, {
+      fields:['geometry','name'],
+      componentRestrictions:{country:'us'}
+    });
+    ac.addListener('place_changed', ()=>{
+      const p = ac.getPlace();
+      if (!p.geometry) return;
+      map.panTo(p.geometry.location);
+      map.setZoom(14);
+    });
+
+    document.getElementById('goBtn').addEventListener('click', runSearch);
+    document.getElementById('refreshBtn').addEventListener('click', runSearch);
+    document.getElementById('clearBtn').addEventListener('click', clearMarkers);
+    document.getElementById('locateBtn').addEventListener('click', ()=>{
+      if (!navigator.geolocation) return alert('Geolocation not supported');
+      navigator.geolocation.getCurrentPosition((pos)=>{
+        const loc = {lat:pos.coords.latitude,lng:pos.coords.longitude};
+        map.panTo(loc); map.setZoom(14);
+      }, ()=>alert('Could not get your location'));
+    });
+    document.getElementById('loadOverlayBtn').addEventListener('click', ()=>{
+      const url = document.getElementById('overlayUrl').value.trim();
+      if (!url) return;
+      loadOverlay(url);
+    });
+    document.getElementById('toggleOverlayBtn').addEventListener('click',()=>{
+      if (!overlayLayer) return;
+      const visible = overlayLayer.getMap && overlayLayer.getMap();
+      if (visible) overlayLayer.setMap(null);
+      else overlayLayer.setMap(map);
+    });
+    document.getElementById('removeOverlayBtn').addEventListener('click',()=>{
+      if (!overlayLayer) return;
+      overlayLayer.setMap && overlayLayer.setMap(null);
+      overlayLayer = null;
+    });
+    document.getElementById('shareBtn').addEventListener('click', ()=>{
+      const url = (function(){ const u=new URL(location.href); u.hash=''; return u.toString(); })();
+      navigator.clipboard.writeText(buildShare()).then(()=>{
+        const badge = document.getElementById('shareStatus');
+        badge.style.display='inline-block';
+        setTimeout(()=>badge.style.display='none',1500);
+      });
+    });
+
+    map.addListener('idle', ()=>{
+      const url = buildShare();
+      history.replaceState(null, '', url);
+    });
+
+    runSearch();
+  }
+</script>
+<script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&libraries=places&callback=initSchoolMap" async defer></script>
+</body>
+</html>
