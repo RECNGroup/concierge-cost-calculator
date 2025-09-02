@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Henderson School District Finder (Miles)</title>
+  <meta name="description" content="Find homes near top-rated Henderson schools. Search by address, filter by rating, and view distance in miles to elementary, middle, and high schools." />
+  <style>
+    :root {
+      --brand:#28a745;
+      --accent:#17a2b8;
+      --ink:#222;
+      --muted:#6c757d;
+      --bg:#f8f9fa;
+      --card:#fff;
+      --border:#e9ecef;
+    }
+    html, body { height:100%; margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue','Noto Sans',Arial,'Apple Color Emoji','Segoe UI Emoji'; color:var(--ink);}
+    .wrap { display:grid; grid-template-columns: 420px 1fr; height:100%;}
+    @media (max-width: 1100px) { .wrap{ grid-template-columns: 1fr; } #map{ order:2; height:55vh; } }
+    #sidebar { background:var(--bg); border-right:1px solid var(--border); padding:18px; overflow:auto; }
+    #map { min-height: 100%; }
+    .h1 { font-size: 1.35rem; margin:0 0 10px; font-weight:700; }
+    .muted { color:var(--muted); }
+    .pill { background:#eaf7ee; color:#1b7a33; display:inline-block; padding:4px 10px; border-radius:999px; font-size:.85rem; margin-left:8px; }
+    .card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:14px; margin:10px 0; }
+    .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .row > * { flex:1 1 140px; }
+    label small { color:var(--muted);}
+    input[type="text"], select { width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:1rem; }
+    input[type="range"] { width:100%; }
+    .btn { background:var(--brand); color:white; padding:10px 14px; border:none; border-radius:10px; font-weight:600; cursor:pointer; }
+    .btn.secondary { background:var(--accent);}
+    .btn.ghost { background:transparent; border:1px solid var(--border); color:var(--ink); }
+    .legend { display:flex; gap:8px; align-items:center; font-size:.9rem; color:var(--muted);}
+    .dot { width:12px; height:12px; border-radius:50%; display:inline-block; }
+    .dot.elem { background:#0ea5e9;} .dot.mid { background:#f59e0b;} .dot.high { background:#ef4444;}
+    .list { margin-top:8px; }
+    .item { padding:10px 8px; border-bottom:1px dashed var(--border);}
+    .item:last-child{ border-bottom:none; }
+    .item h4 { margin:0 0 2px; font-size:1rem;}
+    .chip { display:inline-block; padding:3px 8px; border-radius:999px; border:1px solid var(--border); font-size:.8rem; color:var(--muted); margin-right:6px;}
+    .rating { font-weight:700; color:#f59e0b; }
+    .link { color:var(--accent); text-decoration:none; font-weight:600; }
+    .footer-note { font-size:.85rem; color:var(--muted); margin-top:10px; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <aside id="sidebar">
+    <div class="h1">🏫 Henderson School District Finder <span class="pill">Miles</span></div>
+    <p class="muted">Enter an address (or drop the pin) and choose a radius in miles to see nearby Henderson schools. Ratings are illustrative; confirm attendance boundaries with CCSD.</p>
+
+    <div class="card">
+      <div class="row">
+        <label>
+          <div>📍 Address or Area</div>
+          <input id="search" type="text" placeholder="Start typing an address, neighborhood, or place…" />
+        </label>
+      </div>
+      <div class="row">
+        <label>
+          <div>🎯 Radius: <span id="radiusLabel">5</span> miles</div>
+          <input id="radius" type="range" min="1" max="25" value="5" step="1" />
+        </label>
+        <label>
+          <div>⭐ Min Rating <small>(optional)</small></div>
+          <select id="minRating">
+            <option value="0">Any</option>
+            <option value="7">7+</option>
+            <option value="8">8+</option>
+            <option value="9">9+</option>
+          </select>
+        </label>
+      </div>
+      <div class="row">
+        <button class="btn secondary" id="useLocation">Use My Location</button>
+        <button class="btn ghost" id="resetView">Reset</button>
+      </div>
+      <div class="legend" style="margin-top:10px;">
+        <span class="dot elem"></span> Elementary
+        <span class="dot mid"></span> Middle
+        <span class="dot high"></span> High
+      </div>
+    </div>
+
+    <div class="card">
+      <strong>Nearby Schools</strong>
+      <div id="list" class="list"></div>
+      <div class="footer-note">Attendance boundaries change. Verify with <a class="link" href="https://ccsd.net/zoning/" target="_blank" rel="noopener">CCSD Zoning</a>.</div>
+    </div>
+  </aside>
+
+  <main id="map"></main>
+</div>
+
+<script>
+  // --- Henderson & nearby school seed data (sample, non-exhaustive) ---
+  const SCHOOLS = [
+    // Elementary / Charter
+    {name:"Vanderburg Elementary", type:"Elementary", rating:9, lat:36.02468, lng:-115.05857, url:"https://www.vanderburges.org/"}
+    ,{name:"Tuscany Elementary", type:"Elementary", rating:8, lat:36.00951, lng:-115.00064}
+    ,{name:"Gordon McCaw Elementary", type:"Elementary", rating:8, lat:36.03892, lng:-114.97804}
+    ,{name:"McCaw STEM Elementary", type:"Elementary", rating:8, lat:36.03814, lng:-114.97602}
+    ,{name:"Pinecrest Academy - Cadence", type:"Charter", rating:9, lat:36.05537, lng:-114.96269}
+
+    // Middle
+    ,{name:"Miller Middle (Example)", type:"Middle", rating:8, lat:36.05676, lng:-115.04015}
+
+    // High
+    ,{name:"Coronado High School", type:"High", rating:9, lat:36.00350, lng:-115.08846}
+    ,{name:"Green Valley High School", type:"High", rating:8, lat:36.06239, lng:-115.08137}
+    ,{name:"Foothill High School", type:"High", rating:8, lat:36.00268, lng:-115.02963}
+    ,{name:"Liberty High School", type:"High", rating:8, lat:35.97740, lng:-115.12608}
+    ,{name:"Basic Academy", type:"High", rating:7, lat:36.04028, lng:-114.98394}
+  ];
+
+  let map, userMarker, radiusCircle, info, markers = [];
+  function elemColor(t) { return t==="High" ? "#ef4444" : (t==="Middle" ? "#f59e0b" : "#0ea5e9"); }
+
+  function initMap() { 
+    map = new google.maps.Map(document.getElementById('map'), { 
+      center: {lat:36.0319, lng:-115.0450}, zoom: 12, mapId: "DEMO_MAP_ID"
+    });
+    info = new google.maps.InfoWindow();
+
+    // Autocomplete
+    const acInput = document.getElementById('search');
+    const ac = new google.maps.places.Autocomplete(acInput, { fields: ["geometry","name","formatted_address"] });
+    ac.addListener("place_changed", () => {
+      const place = ac.getPlace();
+      if (!place.geometry) return;
+      setUserLocation(place.geometry.location, place.formatted_address || place.name);
+    });
+
+    // Build school markers
+    SCHOOLS.forEach((s) => {
+      const marker = new google.maps.Marker({ 
+        position: { lat:s.lat, lng:s.lng }, 
+        map, 
+        title: s.name,
+        icon: { 
+          path: google.maps.SymbolPath.CIRCLE, scale: 8, fillColor: elemColor(s.type), fillOpacity: 1, strokeColor: "#fff", strokeWeight: 2
+        }
+      });
+      marker.addListener('click', () => {
+        info.setContent(`
+          <div style="font-weight:700">${s.name}</div>
+          <div>${s.type} · <span class="rating">Rating ${s.rating}/10</span></div>
+          ${s.url ? `<a href="${s.url}" target="_blank" rel="noopener">Website</a>` : ""}
+        `);
+        info.open(map, marker);
+      });
+      marker._school = s;
+      markers.push(marker);
+    });
+
+    // UI
+    document.getElementById('radius').addEventListener('input', (e) => {
+      document.getElementById('radiusLabel').textContent = e.target.value;
+      refreshWithin();
+    });
+    document.getElementById('minRating').addEventListener('change', refreshWithin);
+    document.getElementById('useLocation').addEventListener('click', geolocate);
+    document.getElementById('resetView').addEventListener('click', () => {
+      map.setZoom(12);
+      map.setCenter({lat:36.0319, lng:-115.0450});
+      clearUser();
+      renderList([]);
+    });
+
+    // default list without a point: top-rated
+    renderList([...SCHOOLS].sort((a,b)=>b.rating-a.rating).slice(0,6), null);
+  }
+
+  function setUserLocation(latLng, label="Selected location") {
+    if (userMarker) userMarker.setMap(null);
+    userMarker = new google.maps.Marker({ position: latLng, map, title: label, icon: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png" });
+    map.panTo(latLng);
+    map.setZoom(13);
+    drawRadius(latLng);
+    refreshWithin();
+  }
+
+  function drawRadius(latLng) {
+    const miles = parseFloat(document.getElementById('radius').value || "5");
+    const meters = miles * 1609.344;
+    if (radiusCircle) radiusCircle.setMap(null);
+    radiusCircle = new google.maps.Circle({ map, center: latLng, radius: meters, fillColor:"#007bff", fillOpacity:0.08, strokeColor:"#007bff", strokeOpacity:0.4, strokeWeight:2 });
+  }
+
+  function clearUser() {
+    if (userMarker) userMarker.setMap(null);
+    if (radiusCircle) radiusCircle.setMap(null);
+    userMarker = null; radiusCircle = null;
+  }
+
+  function geolocate() {
+    if (!navigator.geolocation) return alert("Geolocation not supported.");
+    navigator.geolocation.getCurrentPosition((pos) => {
+      const latLng = new google.maps.LatLng(pos.coords.latitude, pos.coords.longitude);
+      setUserLocation(latLng, "Your location");
+    }, () => alert("Could not get your location."), { enableHighAccuracy: true, timeout: 10000 });
+  }
+
+  function refreshWithin() {
+    if (!userMarker) return;
+    const origin = userMarker.getPosition();
+    const miles = parseFloat(document.getElementById('radius').value || "5");
+    const metersLimit = miles * 1609.344;
+    const minR = parseInt(document.getElementById('minRating').value, 10) || 0;
+
+    const list = [];
+    markers.forEach(m => {
+      const dMeters = google.maps.geometry.spherical.computeDistanceBetween(origin, m.getPosition());
+      const inRange = dMeters <= metersLimit && m._school.rating >= minR;
+      m.setOpacity(inRange ? 1 : 0.25);
+      m.setZIndex(inRange ? 2 : 1);
+      if (inRange) {
+        list.push({ ...m._school, distanceMiles: dMeters / 1609.344 });
+      }
+    });
+
+    list.sort((a,b) => a.distanceMiles - b.distanceMiles);
+    renderList(list, origin);
+  }
+
+  function renderList(schools, origin=null) {
+    const el = document.getElementById('list');
+    el.innerHTML = "";
+    if (!schools || schools.length === 0) {
+      el.innerHTML = '<div class="muted">No schools in range. Widen the radius or lower the min rating.</div>';
+      return;
+    }
+    schools.forEach(s => {
+      const dist = (s.distanceMiles != null) ? ` · ${s.distanceMiles.toFixed(1)} mi` : "";
+      const tChip = `<span class="chip">${s.type}</span>`;
+      const rChip = `<span class="chip">Rating ${s.rating}/10</span>`;
+      const row = document.createElement('div');
+      row.className = "item";
+      row.innerHTML = `
+        <h4>${s.name}${dist}</h4>
+        ${tChip} ${rChip}
+        ${s.url ? ` · <a class="link" href="${s.url}" target="_blank" rel="noopener">Website</a>` : ""}
+        <div><a class="link" href="https://ccsd.net/zoning/" target="_blank" rel="noopener">Check attendance zone</a></div>
+      `;
+      row.addEventListener('click', () => {
+        const marker = markers.find(m => m._school.name === s.name);
+        if (marker) { map.panTo(marker.getPosition()); google.maps.event.trigger(marker,'click'); }
+      });
+      el.appendChild(row);
+    });
+  }
+
+  window.initMap = initMap;
+</script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCFlwNjYFjt1d5XCY77KxwarlkBSwl5Usk&libraries=places,geometry&v=weekly&region=US&language=en&callback=initMap" async defer></script>
+</body>
+</html>
