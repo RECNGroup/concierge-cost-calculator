@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Nevada New Construction Calculator | RECN</title>
+  <style>
+    :root{
+      --bg:#0b1220; --card:#111a2b; --muted:#ced4da; --accent:#28a745; --accent2:#17a2b8; --warn:#ffc107; --danger:#dc3545;
+      --ring:rgba(40,167,69,.35);
+    }
+    html,body{background:var(--bg);color:#eef2f6;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;margin:0;}
+    .wrap{max-width:1100px;margin:24px auto;padding:16px;}
+    .hdr{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:space-between}
+    .hdr h1{font-size:clamp(20px,3vw,28px);margin:0;font-weight:700;letter-spacing:.2px}
+    .card{background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.06);
+          border-radius:14px;padding:18px;box-shadow:0 12px 40px rgba(0,0,0,.25)}
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
+    .col-12{grid-column:span 12}
+    .col-6{grid-column:span 12}
+    .col-4{grid-column:span 12}
+    .col-3{grid-column:span 12}
+    @media(min-width:800px){.col-6{grid-column:span 6}.col-4{grid-column:span 4}.col-3{grid-column:span 3}}
+    label{display:block;font-size:12px;color:#a9b4c0;margin:8px 0 6px}
+    input,select{width:100%;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:#0e1727;color:#eaf1f8;
+                 outline:none}
+    input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 4px var(--ring)}
+    .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .btn{padding:10px 14px;border-radius:10px;border:1px solid transparent;background:var(--accent);color:white;cursor:pointer;font-weight:600}
+    .btn.alt{background:var(--accent2)}
+    .btn.warn{background:var(--warn);color:#111}
+    .btn.ghost{background:transparent;border-color:rgba(255,255,255,.2)}
+    .btn:disabled{opacity:.5;cursor:not-allowed}
+    .pill{display:inline-block;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);padding:6px 10px;border-radius:999px;color:#bcd3c7;font-size:12px}
+    .kpi{background:var(--card);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:14px}
+    .kpi h3{margin:0 0 6px;font-size:12px;color:#a9b4c0;font-weight:600}
+    .kpi .v{font-weight:800;font-size:clamp(18px,3.3vw,26px)}
+    .muted{color:#a9b4c0}
+    .split{display:grid;grid-template-columns:1.2fr .8fr;gap:14px}
+    @media(max-width:900px){.split{grid-template-columns:1fr}}
+    .table{width:100%;border-collapse:collapse;font-size:14px}
+    .table th,.table td{border-bottom:1px dashed rgba(255,255,255,.1);padding:10px 6px;text-align:right}
+    .table th:first-child,.table td:first-child{text-align:left}
+    .hl{color:#8ef0b3}
+    .foot{font-size:12px;color:#9fb0bf}
+    .badge{font-size:11px;padding:3px 8px;border-radius:999px;background:rgba(23,162,184,.18);border:1px solid rgba(23,162,184,.35);color:#b7effc;margin-left:8px}
+    .swap{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hdr">
+    <h1>💰 Nevada New Construction Calculator</h1>
+    <span class="pill">RECN • v1.1 “Topaz”</span>
+  </div>
+
+  <div class="split">
+    <!-- LEFT: inputs -->
+    <div class="card">
+      <div class="grid">
+        <div class="col-6">
+          <label>Region</label>
+          <select id="region">
+            <option value="las">Las Vegas</option>
+            <option value="reno">Reno</option>
+            <option value="rural">Rural Nevada</option>
+          </select>
+        </div>
+        <div class="col-6">
+          <label>Build Type</label>
+          <select id="buildType">
+            <option value="production">Production</option>
+            <option value="semi">Semi-Custom</option>
+            <option value="custom">Custom</option>
+            <option value="luxury">Luxury Custom</option>
+          </select>
+        </div>
+
+        <div class="col-6">
+          <label>Living Area (sq ft)</label>
+          <input id="sqft" type="number" inputmode="numeric" min="200" step="10" value="2800">
+        </div>
+
+        <div class="col-6">
+          <label>Base Cost ($ / sq ft)
+            <span id="recBadge" class="badge">Recommended: <span id="recVal">$0</span></span>
+          </label>
+          <div class="swap">
+            <input id="costPerSf" type="number" inputmode="decimal" min="50" step="1" value="200" style="flex:1">
+            <button id="useRec" class="btn ghost" type="button" title="Use Recommended $/sf">Use Recommended</button>
+          </div>
+        </div>
+
+        <div class="col-6">
+          <label>Lot Price ($)</label>
+          <input id="lotPrice" type="number" inputmode="decimal" min="0" step="1000" value="180000">
+        </div>
+        <div class="col-6">
+          <label>Finance Lot in Construction Loan?</label>
+          <select id="financeLot">
+            <option value="yes" selected>Yes</option>
+            <option value="no">No (cash)</option>
+          </select>
+        </div>
+
+        <div class="col-4">
+          <label>Soft Costs (% of build)</label>
+          <input id="softPct" type="number" min="0" step="0.5" value="8">
+        </div>
+        <div class="col-4">
+          <label>Contingency (% of build)</label>
+          <input id="contPct" type="number" min="0" step="0.5" value="8">
+        </div>
+        <div class="col-4">
+          <label>Upgrades Allowance ($)</label>
+          <input id="upgrades" type="number" min="0" step="500" value="25000">
+        </div>
+
+        <div class="col-6">
+          <label>Permit & Impact Fees ($)</label>
+          <input id="permits" type="number" min="0" step="500" value="6000">
+        </div>
+        <div class="col-6">
+          <label>Loan-to-Cost (LTC %)</label>
+          <input id="ltc" type="number" min="50" max="95" step="0.5" value="85">
+        </div>
+
+        <div class="col-4">
+          <label>Construction Rate (APR %)</label>
+          <input id="constAPR" type="number" min="1" step="0.05" value="8">
+        </div>
+        <div class="col-4">
+          <label>Construction Duration (months)</label>
+          <input id="constMonths" type="number" min="1" step="1" value="9">
+        </div>
+        <div class="col-4">
+          <label>Avg. Utilization (% of loan)</label>
+          <input id="utilPct" type="number" min="20" max="100" step="1" value="55">
+        </div>
+
+        <div class="col-4">
+          <label>Perm. Mortgage Rate (APR %)</label>
+          <input id="mortAPR" type="number" min="1" step="0.05" value="6.75">
+        </div>
+        <div class="col-4">
+          <label>Mortgage Term (years)</label>
+          <input id="termYears" type="number" min="10" step="5" value="30">
+        </div>
+        <div class="col-4">
+          <label>HOA ($/mo)</label>
+          <input id="hoa" type="number" min="0" step="1" value="0">
+        </div>
+
+        <div class="col-6">
+          <label>Property Tax Rate (% of value)</label>
+          <input id="taxRate" type="number" min="0" step="0.01" value="0.64">
+        </div>
+        <div class="col-6">
+          <label>Homeowners Insurance ($/yr)</label>
+          <input id="insAnnual" type="number" min="0" step="50" value="1800">
+        </div>
+
+        <div class="col-6">
+          <label>Monthly Solar/Efficiency Savings ($) <span class="muted">(optional)</span></label>
+          <input id="solarSave" type="number" min="0" step="5" value="0">
+        </div>
+        <div class="col-6">
+          <label>&nbsp;</label>
+          <div class="row">
+            <button id="calc" class="btn" type="button">Calculate</button>
+            <button id="copyLink" class="btn alt" type="button" title="Copy your inputs as a shareable URL">Copy Shareable Link</button>
+            <button id="resetBtn" class="btn ghost" type="button">Reset</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: KPIs + breakdown -->
+    <div class="card">
+      <div class="grid">
+        <div class="col-6 kpi">
+          <h3>Total Build Cost</h3>
+          <div class="v" id="k_build">$0</div>
+          <div class="muted" id="k_cpsf">Cost per sf: —</div>
+        </div>
+        <div class="col-6 kpi">
+          <h3>Est. Construction Interest</h3>
+          <div class="v" id="k_interest">$0</div>
+          <div class="muted">Assumes average utilization over build</div>
+        </div>
+        <div class="col-6 kpi">
+          <h3>Project Total (All-In)</h3>
+          <div class="v hl" id="k_total">$0</div>
+          <div class="muted">Incl. lot, fees, interest</div>
+        </div>
+        <div class="col-6 kpi">
+          <h3>Cash to Close</h3>
+          <div class="v" id="k_cash">$0</div>
+          <div class="muted" id="k_loan">Loan: —</div>
+        </div>
+        <div class="col-12 kpi">
+          <h3>Est. Monthly (PITI+HOA)</h3>
+          <div class="v" id="k_month">$0/mo</div>
+          <div class="muted" id="k_month_note">Includes PI, taxes, insurance, HOA, minus savings</div>
+        </div>
+      </div>
+
+      <hr style="border:0;border-top:1px solid rgba(255,255,255,.08);margin:18px 0">
+
+      <table class="table" id="table">
+        <thead>
+          <tr><th>Line Item</th><th>Amount</th></tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+        <tfoot>
+          <tr><th>Project Total</th><th id="t_total">$0</th></tr>
+        </tfoot>
+      </table>
+
+      <p class="foot">
+        Estimates only. Ranges based on Nevada market bands you provided. Actual costs vary by builder,
+        specifications, soils/engineering, and interest draw timing.
+      </p>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = (id)=>document.getElementById(id);
+const fmtC = (n)=> isFinite(n) ? n.toLocaleString(undefined,{style:'currency',currency:'USD',maximumFractionDigits:0}) : '—';
+const fmtP = (n)=> (n||0).toFixed(2)+'%';
+const clamp = (v,min,max)=>Math.min(Math.max(v,min),max);
+
+// Nevada cost bands (low, high) in $/sf
+const bands = {
+  las:   {production:[165,225], semi:[195,285], custom:[235,450], luxury:[325,650]},
+  reno:  {production:[175,235], semi:[205,295], custom:[245,465], luxury:[335,675]},
+  rural: {production:[155,205], semi:[185,265], custom:[225,425], luxury:[295,595]}
+};
+
+function recCostPerSf(region, type){
+  const [lo,hi] = bands[region][type];
+  return Math.round((lo+hi)/2);
+}
+
+function setRecommended(){
+  const r = $('region').value;
+  const t = $('buildType').value;
+  const rec = recCostPerSf(r,t);
+  $('costPerSf').value = rec;
+  $('recVal').textContent = fmtC(rec).replace('$','\$') + '/sf';
+  $('recBadge').style.display = 'inline-block';
+}
+
+function amortizeMonthly(principal, apr, years){
+  const i = (apr/100)/12;
+  const n = years*12;
+  if(!principal || !apr || !years) return 0;
+  if(i===0) return principal/n;
+  return principal * (i*Math.pow(1+i,n)) / (Math.pow(1+i,n)-1);
+}
+
+function readNum(id){ return parseFloat($(id).value) || 0; }
+
+function calculate(){
+  // Inputs
+  const sqft = readNum('sqft');
+  const cpsf = readNum('costPerSf');
+  const baseBuild = sqft * cpsf;
+
+  const soft = baseBuild * (readNum('softPct')/100);
+  const cont = baseBuild * (readNum('contPct')/100);
+  const upgrades = readNum('upgrades');
+  const permits = readNum('permits');
+  const lot = readNum('lotPrice');
+  const ltc = clamp(readNum('ltc')/100, 0, 1);
+
+  const constAPR = readNum('constAPR');
+  const constMonths = readNum('constMonths');
+  const util = clamp(readNum('utilPct')/100, 0, 1);
+  const financeLot = $('financeLot').value === 'yes';
+
+  const mortAPR = readNum('mortAPR');
+  const termYears = readNum('termYears');
+  const hoa = readNum('hoa');
+  const taxRate = readNum('taxRate')/100; // percent -> decimal
+  const insAnnual = readNum('insAnnual');
+  const solarSave = readNum('solarSave');
+
+  // Subtotals
+  const buildSubtotal = baseBuild + soft + cont + upgrades + permits;
+  const loanBase = buildSubtotal + (financeLot ? lot : 0);
+  const loanAmt = Math.min(loanBase * ltc, loanBase);
+
+  // Construction interest (interest-only on average utilization over duration)
+  const interest = loanAmt * (constAPR/100) * (constMonths/12) * util;
+
+  // Totals
+  const projectTotal = buildSubtotal + lot + interest;
+  const cashToClose = Math.max(projectTotal - loanAmt, 0);
+  const costPerSfAllIn = sqft ? projectTotal / sqft : 0;
+
+  // Monthly PITI (+HOA - savings)
+  const assessedValue = baseBuild + lot; // simple proxy for taxes
+  const taxMonthly = (assessedValue * taxRate) / 12;
+  const insMonthly = insAnnual / 12;
+  const piMonthly = amortizeMonthly(loanAmt, mortAPR, termYears);
+  const pitiHoa = Math.max(piMonthly + taxMonthly + insMonthly + hoa - solarSave, 0);
+
+  // KPIs
+  $('k_build').textContent   = fmtC(buildSubtotal);
+  $('k_cpsf').textContent    = "Cost per sf: " + (sqft ? fmtC(baseBuild/sqft)+'/sf' : '—');
+  $('k_interest').textContent= fmtC(interest);
+  $('k_total').textContent   = fmtC(projectTotal);
+  $('k_cash').textContent    = fmtC(cashToClose);
+  $('k_loan').textContent    = "Loan: " + fmtC(loanAmt) + " (LTC " + fmtP(ltc*100) + ")";
+  $('k_month').textContent   = fmtC(pitiHoa) + "/mo";
+  $('k_month_note').textContent = "PI " + fmtC(piMonthly) + " + Tax " + fmtC(taxMonthly) + " + Ins " + fmtC(insMonthly) + " + HOA " + fmtC(hoa) + (solarSave?(" − Savings " + fmtC(solarSave)):"");
+
+  // Table
+  const rows = [
+    ["Base build ("+ sqft.toLocaleString()+" sf × "+fmtC(cpsf).replace('$','\$')+"/sf)", baseBuild],
+    ["Soft costs ("+(readNum('softPct'))+"%)", soft],
+    ["Contingency ("+(readNum('contPct'))+"%)", cont],
+    ["Upgrades allowance", upgrades],
+    ["Permits & impact fees", permits],
+    ["Lot price", lot],
+    ["Est. construction interest", interest],
+    ["—", null],
+    ["Estimated Loan Amount", -loanAmt],
+    ["Cash to Close", cashToClose]
+  ];
+  const tb = $('tbody');
+  tb.innerHTML = '';
+  rows.forEach(([label, amt])=>{
+    if(amt===null){
+      const tr=document.createElement('tr');
+      const td=document.createElement('td'); td.colSpan=2; td.style.padding='6px'; tb.appendChild(tr).appendChild(td);
+      return;
+    }
+    const tr = document.createElement('tr');
+    const tdl = document.createElement('td'); tdl.textContent = label;
+    const tda = document.createElement('td'); tda.textContent = (amt<0?("− "+fmtC(Math.abs(amt))):fmtC(amt));
+    tr.appendChild(tdl); tr.appendChild(tda); tb.appendChild(tr);
+  });
+  $('t_total').textContent = fmtC(projectTotal);
+
+  // Persist to URL (but don't change address bar until requested)
+  return {projectTotal, costPerSfAllIn, loanAmt, cashToClose, piMonthly, taxMonthly, insMonthly, hoa, solarSave};
+}
+
+function copyLinkWithState(){
+  const params = new URLSearchParams();
+  ['region','buildType','sqft','costPerSf','lotPrice','financeLot','softPct','contPct','upgrades','permits','ltc','constAPR','constMonths','utilPct','mortAPR','termYears','hoa','taxRate','insAnnual','solarSave']
+  .forEach(id=> params.set(id, $(id).value));
+  const url = location.origin + location.pathname + '?' + params.toString();
+  navigator.clipboard.writeText(url).then(()=>{
+    const btn = $('copyLink');
+    const old = btn.textContent;
+    btn.textContent = 'Link Copied!';
+    setTimeout(()=>btn.textContent=old, 1600);
+  });
+}
+
+function loadFromQuery(){
+  const q = new URLSearchParams(location.search);
+  const ids = ['region','buildType','sqft','costPerSf','lotPrice','financeLot','softPct','contPct','upgrades','permits','ltc','constAPR','constMonths','utilPct','mortAPR','termYears','hoa','taxRate','insAnnual','solarSave'];
+  let touched=false;
+  ids.forEach(id=>{
+    if(q.has(id)){ $(id).value = q.get(id); touched=true; }
+  });
+  setRecommended();
+  calculate();
+  return touched;
+}
+
+function resetForm(){
+  // Simple reload without query string
+  history.replaceState(null,'',location.pathname);
+  document.querySelectorAll('input,select').forEach(el=>{
+    // keep defaults as in HTML by resetting form values
+  });
+  // Hard reload to restore defaults defined in HTML
+  location.reload();
+}
+
+$('region').addEventListener('change', ()=>{ setRecommended(); calculate(); });
+$('buildType').addEventListener('change', ()=>{ setRecommended(); calculate(); });
+$('useRec').addEventListener('click', ()=>{ setRecommended(); calculate(); });
+document.querySelectorAll('input,select').forEach(el=>{
+  el.addEventListener('input', ()=> calculate());
+  el.addEventListener('change', ()=> calculate());
+});
+$('calc').addEventListener('click', calculate);
+$('copyLink').addEventListener('click', copyLinkWithState);
+$('resetBtn').addEventListener('click', resetForm);
+
+// Init
+setRecommended();
+loadFromQuery();
+calculate();
+</script>
+</body>
+</html>
