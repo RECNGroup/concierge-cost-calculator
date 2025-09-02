@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Las Vegas Luxury Investment Calculator • RECN</title>
+<style>
+  :root{
+    --gold:#ffd700;
+    --gold-600:#e6c200;
+    --accent:#17a2b8;
+    --bg:#0b0b0c;
+    --card:#121316;
+    --muted:#a7a7ad;
+    --good:#28a745;
+    --bad:#dc3545;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Helvetica,Arial;
+    background:linear-gradient(180deg,#0b0b0c 0%, #101114 100%);
+    color:#f9fafb;
+  }
+  header{
+    position:sticky;top:0;z-index:10;
+    background:rgba(18,19,22,.9);
+    backdrop-filter: blur(6px);
+    border-bottom:1px solid #22252b;
+  }
+  header .wrap{
+    max-width:1200px;margin:0 auto;
+    padding:14px 16px;display:flex;align-items:center;gap:12px;
+  }
+  .brand{
+    font-weight:800;letter-spacing:.3px;
+    color:var(--gold);
+  }
+  .tag{color:#d1d5db;font-size:13px}
+  main{max-width:1200px;margin:20px auto;padding:0 16px 40px}
+  .grid{
+    display:grid;grid-template-columns:1fr 1fr;gap:16px;
+  }
+  @media (max-width: 980px){ .grid{ grid-template-columns:1fr; } }
+  .card{
+    background:var(--card);
+    border:1px solid #1f2329;
+    border-radius:14px;
+    padding:18px;
+    box-shadow:0 8px 22px rgba(0,0,0,.35);
+  }
+  h1{font-size:28px;margin:14px 0 8px 0;color:#fff}
+  h2{font-size:18px;margin:0 0 12px 0;color:#fff}
+  .fine{color:var(--muted);font-size:13px;margin-top:-6px}
+  .inputs{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:10px;
+  }
+  @media (max-width:720px){ .inputs{ grid-template-columns:1fr; } }
+  label{
+    font-size:13px;color:#cfd3da;display:block;margin:0 0 6px 2px;
+  }
+  input,select{
+    width:100%;padding:11px 12px;border-radius:10px;
+    border:1px solid #2a2f39;background:#0f1115;color:#f1f5f9;
+    outline:none;
+  }
+  input:focus{border-color:var(--gold)}
+  .row{display:flex;gap:10px}
+  .help{color:#9aa0a6;font-size:12px;margin-top:6px}
+  .btn{
+    background:var(--gold);
+    color:#0b0b0c;font-weight:700;border:none;border-radius:12px;
+    padding:12px 16px;cursor:pointer;
+    transition:.15s transform ease, .15s background ease;
+  }
+  .btn:hover{background:var(--gold-600);transform:translateY(-1px)}
+  .pill{
+    display:inline-block;padding:6px 10px;border-radius:999px;font-size:12px;
+    border:1px solid #2a2f39;background:#0f1115;color:#d1d5db;margin-left:6px;
+  }
+  .kpis{
+    display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:10px;
+  }
+  @media (max-width:900px){ .kpis{grid-template-columns:1fr 1fr} }
+  @media (max-width:640px){ .kpis{grid-template-columns:1fr} }
+  .kpi{padding:14px;border:1px dashed #2a2f39;border-radius:12px}
+  .kpi h3{margin:0 0 6px 0;font-size:13px;color:#cfd3da;font-weight:600}
+  .kpi .v{font-size:22px;font-weight:800;color:#fff}
+  .kpi .sub{font-size:12px;color:#9aa0a6;margin-top:4px}
+  table{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px}
+  th,td{padding:10px;border-bottom:1px solid #20242b}
+  th{text-align:left;color:#cbd5e1}
+  .right{text-align:right}
+  .muted{color:#9aa0a6}
+  .ok{color:var(--good)} .warn{color:var(--bad)}
+  details{margin-top:8px}
+  summary{cursor:pointer;color:#e2e8f0}
+  footer{margin-top:18px;color:#8b91a1;font-size:12px}
+  .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="brand">RECN • Las Vegas Luxury Investment Calculator</div>
+    <div class="tag">Cap Rate • Cash-on-Cash • IRR • NV vs. State Tax Advantage</div>
+  </div>
+</header>
+<main>
+  <div class="grid">
+    <section class="card">
+      <h1>Inputs <span class="pill">All fields editable</span></h1>
+      <div class="inputs">
+        <div>
+          <label>Purchase Price ($)</label>
+          <input type="number" id="price" value="2200000" min="0" step="1000">
+        </div>
+        <div>
+          <label>Down Payment (%)</label>
+          <input type="number" id="downPct" value="35" min="0" max="100" step="0.1">
+        </div>
+        <div>
+          <label>Interest Rate (APR %)</label>
+          <input type="number" id="rate" value="6.25" min="0" step="0.01">
+        </div>
+        <div>
+          <label>Loan Term (years)</label>
+          <input type="number" id="term" value="30" min="1" step="1">
+        </div>
+        <div>
+          <label>Buyer Closing Costs (% of price)</label>
+          <input type="number" id="closePct" value="2" min="0" step="0.1">
+        </div>
+        <div>
+          <label>Monthly Rent ($)</label>
+          <input type="number" id="rent" value="8500" min="0" step="50">
+        </div>
+        <div>
+          <label>Other Monthly Income ($)</label>
+          <input type="number" id="otherInc" value="0" min="0" step="25">
+        </div>
+        <div>
+          <label>Vacancy (% of GPR)</label>
+          <input type="number" id="vacancy" value="6" min="0" max="100" step="0.1">
+        </div>
+        <div>
+          <label>Operating Expense Ratio (% of EGI)</label>
+          <input type="number" id="opxRatio" value="35" min="0" max="100" step="0.1">
+        </div>
+        <div>
+          <label>Annual Rent Growth (%)</label>
+          <input type="number" id="rentGrowth" value="3" min="-50" max="100" step="0.1">
+        </div>
+        <div>
+          <label>Annual Expense Growth (%)</label>
+          <input type="number" id="opxGrowth" value="3" min="-50" max="100" step="0.1">
+        </div>
+        <div>
+          <label>Annual Appreciation (%)</label>
+          <input type="number" id="appreciation" value="5" min="-50" max="100" step="0.1">
+        </div>
+        <div>
+          <label>Hold Period (years)</label>
+          <input type="number" id="hold" value="7" min="1" step="1">
+        </div>
+        <div>
+          <label>Selling Costs (% of sale price)</label>
+          <input type="number" id="sellCost" value="5" min="0" max="30" step="0.1">
+        </div>
+        <div>
+          <label>Land % (for depreciation)</label>
+          <input type="number" id="landPct" value="20" min="0" max="95" step="1">
+        </div>
+        <div>
+          <label>Depreciation Schedule</label>
+          <select id="depYears">
+            <option value="27.5">Residential (27.5 yrs)</option>
+            <option value="39">Commercial (39 yrs)</option>
+          </select>
+        </div>
+        <div>
+          <label>Comparison State Tax Rate (%)*</label>
+          <input type="number" id="stateTax" value="9" min="0" max="20" step="0.1">
+          <div class="help">NV is 0%. Used to estimate state tax paid elsewhere.</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:14px;">
+        <button class="btn" id="calcBtn">Calculate Returns</button>
+        <button class="btn" style="background:#20242b;color:#e5e7eb" id="resetBtn">Reset</button>
+      </div>
+      <div class="fine">* Simplified state tax model: applies rate to estimated taxable income (NOI − interest − depreciation) and to capital gain at exit (ignores recapture and basis adjustments). Not tax advice.</div>
+    </section>
+
+    <section class="card">
+      <h2>Headline Results</h2>
+      <div class="kpis">
+        <div class="kpi">
+          <h3>Year‑1 Cap Rate</h3>
+          <div class="v" id="capRate">—</div>
+          <div class="sub">NOI ÷ Price</div>
+        </div>
+        <div class="kpi">
+          <h3>Year‑1 Cash‑on‑Cash</h3>
+          <div class="v" id="coc">—</div>
+          <div class="sub">Cash flow ÷ Cash invested</div>
+        </div>
+        <div class="kpi">
+          <h3>Hold IRR (pre‑state‑tax)</h3>
+          <div class="v" id="irrPre">—</div>
+          <div class="sub">Annualized with exit</div>
+        </div>
+        <div class="kpi">
+          <h3>IRR w/ Comparison State Tax</h3>
+          <div class="v" id="irrPost">—</div>
+          <div class="sub">Applies your state rate</div>
+        </div>
+        <div class="kpi">
+          <h3>Est. NV State‑Tax Advantage</h3>
+          <div class="v" id="nvAdv">—</div>
+          <div class="sub">Over entire hold period</div>
+        </div>
+        <div class="kpi">
+          <h3>Projected Net Sale Proceeds</h3>
+          <div class="v" id="netSale">—</div>
+          <div class="sub">After debt & selling costs</div>
+        </div>
+      </div>
+      <footer>Tip: change just three fields—Price, Down %, and Rent—to quickly size a deal. Fine‑tune the growth and tax fields later.</footer>
+    </section>
+
+    <section class="card">
+      <h2>Cash Flows (pre‑state‑tax)</h2>
+      <div class="help">Annual cash flow to equity after debt service. Exit proceeds included in final year.</div>
+      <div id="flowWrap"></div>
+    </section>
+
+    <section class="card">
+      <h2>NOI & Taxable Income (for state‑tax estimate)</h2>
+      <div class="help">Taxable income = NOI − interest − depreciation (floored at 0 for state‑tax calc).</div>
+      <div id="taxWrap"></div>
+    </section>
+  </div>
+  <footer style="margin-top:18px">
+    <div>⚠️ For illustration only. State taxes are simplified (no recapture, basis adjustments, limits). Please consult your advisors.</div>
+  </footer>
+</main>
+
+<script>
+// Utility formatting
+const fmt$ = n => isFinite(n) ? n.toLocaleString(undefined,{style:'currency',currency:'USD',maximumFractionDigits:0}) : '—';
+const fmt$0 = n => isFinite(n) ? n.toLocaleString(undefined,{style:'currency',currency:'USD',maximumFractionDigits:0}) : '—';
+const fmt$2 = n => isFinite(n) ? n.toLocaleString(undefined,{style:'currency',currency:'USD',maximumFractionDigits:2}) : '—';
+const fmtPct = n => isFinite(n) ? (n*100).toFixed(2)+'%' : '—';
+
+// PMT (monthly payment)
+function pmt(rate, nper, pv){
+  if (rate === 0) return -(pv / nper);
+  const r = rate;
+  return -(pv * r) / (1 - Math.pow(1 + r, -nper));
+}
+
+// IRR via Newton-Raphson with bisection fallback
+function irr(cashflows, guess=0.1){
+  const maxIter = 100;
+  const eps = 1e-7;
+  // Newton
+  let r = guess;
+  for(let i=0;i<maxIter;i++){
+    let f=0, df=0;
+    for(let t=0;t<cashflows.length;t++){
+      const cf = cashflows[t];
+      const dr = Math.pow(1+r, t);
+      f += cf / dr;
+      if (dr !== 0) df += -t*cf / (dr*(1+r));
+    }
+    if (Math.abs(f) < eps) return r;
+    const step = f/df;
+    r -= step;
+    if (!isFinite(r)) break;
+  }
+  // Bisection in [-0.99, 5]
+  let lo = -0.99, hi = 5;
+  for(let k=0;k<200;k++){
+    const mid = (lo+hi)/2;
+    const NPV = cashflows.reduce((s,cf,idx)=> s + cf/Math.pow(1+mid, idx), 0);
+    if (Math.abs(NPV) < eps) return mid;
+    // sign at lo
+    const NPVlo = cashflows.reduce((s,cf,idx)=> s + cf/Math.pow(1+lo, idx), 0);
+    if (NPVlo*NPV <= 0){ hi = mid; } else { lo = mid; }
+  }
+  return NaN;
+}
+
+// Core calculation
+function calc(){
+  const price = +document.getElementById('price').value || 0;
+  const downPct = (+document.getElementById('downPct').value || 0)/100;
+  const rate = (+document.getElementById('rate').value || 0)/100;
+  const term = +document.getElementById('term').value || 30;
+  const closePct = (+document.getElementById('closePct').value || 0)/100;
+
+  const rent = +document.getElementById('rent').value || 0;
+  const otherInc = +document.getElementById('otherInc').value || 0;
+  const vacancy = (+document.getElementById('vacancy').value || 0)/100;
+  const opxRatio = (+document.getElementById('opxRatio').value || 0)/100;
+
+  const rentGrowth = (+document.getElementById('rentGrowth').value || 0)/100;
+  const opxGrowth = (+document.getElementById('opxGrowth').value || 0)/100;
+  const appreciation = (+document.getElementById('appreciation').value || 0)/100;
+  const hold = Math.max(1, parseInt(document.getElementById('hold').value || '1',10));
+  const sellCost = (+document.getElementById('sellCost').value || 0)/100;
+
+  const landPct = (+document.getElementById('landPct').value || 0)/100;
+  const depYears = parseFloat(document.getElementById('depYears').value);
+  const stateTax = (+document.getElementById('stateTax').value || 0)/100;
+
+  const down = price * downPct;
+  const loan = price - down;
+  const close$ = price * closePct;
+  const cashInvested = down + close$;
+
+  // Mortgage
+  const mRate = rate/12;
+  const nper = term*12;
+  const mPmt = pmt(mRate, nper, loan); // negative by definition
+  const mPmtAbs = Math.abs(mPmt);
+
+  // Year-1 incomes/expenses
+  const gprY1 = (rent + otherInc)*12;
+  const egiY1 = gprY1 * (1 - vacancy);
+  const opxY1 = egiY1 * opxRatio;
+  const noiY1 = egiY1 - opxY1;
+  const debtSvcY1 = mPmtAbs * 12;
+  const cfeY1 = noiY1 - debtSvcY1; // cash flow to equity pre-state-tax
+
+  // Cap Rate & CoC
+  const capRate = price>0 ? (noiY1/price) : NaN;
+  const coc = cashInvested>0 ? (cfeY1/cashInvested) : NaN;
+
+  // Amortization + multi-year projection
+  let bal = loan;
+  const annualCash = [];
+  const annualNOI = [];
+  const annualInt = [];
+  const annualDep = [];
+  const annualTaxable = [];
+  const annualStateTax = [];
+
+  const buildingBasis = price * (1 - landPct);
+  const depAnnual = buildingBasis/depYears;
+
+  let currentRent = rent;
+  let currentOther = otherInc;
+  let currentOpxRatio = opxRatio; // we'll grow the actual dollars, not the ratio
+  let egiPrev = 0, egiCurr = 0;
+
+  for(let y=1; y<=hold; y++){
+    // Grow income & expenses
+    if (y>1){
+      currentRent *= (1 + rentGrowth);
+      currentOther *= (1 + rentGrowth);
+    }
+    const gpr = (currentRent + currentOther)*12;
+    const egi = gpr * (1 - vacancy);
+    const opx = (y===1 ? opxY1 : (annualNOI[y-2] !== undefined ? ( (egiPrev - annualNOI[y-2]) * (1 + opxGrowth) ) : egi*opxRatio ));
+    // If prior year NOI existed, reconstruct prior expenses = egiPrev - NOIprev, then grow by opxGrowth.
+    const noi = egi - opx;
+
+    // 12-month amort to get interest/principal for the year
+    let intForYear = 0, prinForYear = 0;
+    for(let m=0; m<12; m++){
+      const interest = bal * mRate;
+      const principal = mPmtAbs - interest;
+      intForYear += interest;
+      prinForYear += principal;
+      bal -= principal;
+    }
+    const debtSvc = mPmtAbs * 12;
+
+    const cashFlow = noi - debtSvc;
+    annualCash.push(cashFlow);
+    annualNOI.push(noi);
+    annualInt.push(intForYear);
+    egiPrev = egi;
+
+    // Depreciation (flat per year)
+    const dep = depAnnual;
+    annualDep.push(dep);
+
+    const taxable = Math.max(0, noi - intForYear - dep); // floor at 0 for state tax estimate
+    annualTaxable.push(taxable);
+    const stax = taxable * stateTax;
+    annualStateTax.push(stax);
+  }
+
+  // Exit
+  const futurePrice = price * Math.pow(1 + appreciation, hold);
+  const sellCosts$ = futurePrice * sellCost;
+  const netSaleBeforeDebt = futurePrice - sellCosts$;
+  const loanBalanceAtExit = Math.max(0, bal);
+  const netSaleProceeds = netSaleBeforeDebt - loanBalanceAtExit;
+
+  // Capital gain (simplified) for state tax
+  const simpleCapGain = Math.max(0, futurePrice - sellCosts$ - price);
+  const stateTaxAtExit = simpleCapGain * stateTax;
+
+  // IRR set-up
+  const flowsPre = [-cashInvested, ...annualCash];
+  flowsPre[flowsPre.length-1] += netSaleProceeds; // add exit proceeds to final year
+  const irrPre = irr(flowsPre);
+
+  // With comparison state tax (reduce each year's cash by state tax; subtract at exit too)
+  const flowsPost = [-cashInvested, ...annualCash.map((cf,i)=> cf - annualStateTax[i])];
+  flowsPost[flowsPost.length-1] += (netSaleProceeds - stateTaxAtExit);
+  const irrPost = irr(flowsPost);
+
+  // NV tax advantage
+  const totalStateTax = annualStateTax.reduce((a,b)=>a+b,0) + stateTaxAtExit;
+
+  // Paint KPIs
+  document.getElementById('capRate').textContent = isFinite(capRate) ? (capRate*100).toFixed(2)+'%' : '—';
+  document.getElementById('coc').textContent = isFinite(coc) ? (coc*100).toFixed(2)+'%' : '—';
+  document.getElementById('irrPre').textContent = isFinite(irrPre) ? (irrPre*100).toFixed(2)+'%' : '—';
+  document.getElementById('irrPost').textContent = isFinite(irrPost) ? (irrPost*100).toFixed(2)+'%' : '—';
+  document.getElementById('nvAdv').textContent = fmt$0(totalStateTax);
+  document.getElementById('netSale').textContent = fmt$0(netSaleProceeds);
+
+  // Cash flow table
+  const flowRows = annualCash.map((cf,i)=>{
+    const yr = i+1;
+    const withExit = (yr===hold) ? cf + netSaleProceeds : cf;
+    return `<tr><td>Year ${yr}</td><td class="right">${fmt$0(cf)}</td><td class="right ${withExit>=0?'ok':'warn'}">${fmt$0(withExit)}</td></tr>`;
+  }).join('');
+  document.getElementById('flowWrap').innerHTML = `
+    <table>
+      <thead><tr><th>Year</th><th class="right">Cash Flow</th><th class="right">Cash Flow (incl. Exit if Final)</th></tr></thead>
+      <tbody>${flowRows}</tbody>
+      <tfoot>
+        <tr><th>Initial Cash Invested</th><th class="right">${fmt$0(cashInvested)}</th><th></th></tr>
+      </tfoot>
+    </table>
+  `;
+
+  // Tax table
+  const taxRows = annualNOI.map((noi,i)=>{
+    const yr = i+1;
+    return `<tr>
+      <td>Year ${yr}</td>
+      <td class="right">${fmt$0(noi)}</td>
+      <td class="right">${fmt$0(annualInt[i])}</td>
+      <td class="right">${fmt$0(annualDep[i])}</td>
+      <td class="right">${fmt$0(annualTaxable[i])}</td>
+      <td class="right">${fmt$0(annualStateTax[i])}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('taxWrap').innerHTML = `
+    <table>
+      <thead><tr>
+        <th>Year</th><th class="right">NOI</th><th class="right">Interest</th><th class="right">Depreciation</th><th class="right">Taxable (est.)</th><th class="right">State Tax (est.)</th>
+      </tr></thead>
+      <tbody>${taxRows}</tbody>
+      <tfoot>
+        <tr><th colspan="5" class="right">Estimated State Tax at Exit (cap gain)</th><th class="right">${fmt$0(stateTaxAtExit)}</th></tr>
+        <tr><th colspan="5" class="right">Total Est. State Taxes (hold + exit)</th><th class="right">${fmt$0(totalStateTax)}</th></tr>
+      </tfoot>
+    </table>
+  `;
+}
+
+document.getElementById('calcBtn').addEventListener('click', calc);
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  document.querySelectorAll('input[type="number"], select').forEach(el=>{
+    const defaults = {
+      price:2200000,downPct:35,rate:6.25,term:30,closePct:2,
+      rent:8500,otherInc:0,vacancy:6,opxRatio:35,
+      rentGrowth:3,opxGrowth:3,appreciation:5,hold:7,sellCost:5,
+      landPct:20,depYears:27.5,stateTax:9
+    };
+    const id = el.id;
+    if (id in defaults){ el.value = defaults[id]; }
+  });
+  calc();
+});
+
+// Auto-calc on load
+calc();
+</script>
+</body>
+</html>
