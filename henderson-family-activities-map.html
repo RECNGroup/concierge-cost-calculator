@@ -1,244 +1,233 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Henderson Family Activities Map</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Henderson Family Activities Map (Miles)</title>
+  <meta name="description" content="Interactive map of Henderson parks, recreation centers, pools, libraries, and family activities. Search, filter, and see distances in miles." />
   <style>
-    :root{--primary:#fd7e14;--accent:#20c997;--bg:#f8f9fa}
-    *{box-sizing:border-box}
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Helvetica,Arial,sans-serif;background:#fff;color:#111}
-    header{padding:14px 18px;background:linear-gradient(135deg,var(--primary),#ff9800);color:#fff}
-    header h1{margin:0;font-size:18px;font-weight:700}
-    .wrap{display:grid;grid-template-columns:320px 1fr;gap:16px;min-height:100vh}
-    .panel{padding:14px;background:var(--bg);border-right:1px solid #e5e7eb}
-    .panel h2{font-size:16px;margin:0 0 8px}
-    .panel .sub{font-size:12px;color:#555;margin:0 0 10px}
-    .pill{display:flex;align-items:center;gap:8px;border:1px solid #cbd5e1;border-radius:999px;padding:8px 12px;background:#fff;margin:6px 0;font-size:13px}
-    .pill input{accent-color:var(--primary)}
-    .row{display:flex;gap:8px;flex-wrap:wrap}
-    .btn{display:inline-flex;align-items:center;gap:6px;padding:10px 12px;border-radius:8px;border:1px solid #d1d5db;background:#fff;cursor:pointer;font-weight:600}
-    .btn.primary{background:var(--primary);border-color:var(--primary);color:#fff}
-    .btn.small{padding:6px 9px;font-size:12px}
-    .group{border:1px solid #e5e7eb;border-radius:10px;background:#fff;padding:10px;margin:12px 0}
-    .note{font-size:12px;color:#667085;line-height:1.4}
-    #map{width:100%;height:100vh;min-height:640px}
-    .divider{height:1px;background:#e5e7eb;margin:12px 0}
-    .badge{display:inline-block;background:#fff7ed;color:#7c2d12;border:1px solid #fde68a;padding:2px 8px;border-radius:999px;font-size:11px;margin-left:6px}
-    footer{padding:10px 14px;font-size:12px;color:#6b7280;border-top:1px solid #eee}
+    :root { --brand:#fd7e14; --ink:#222; --bg:#f8f9fa; --border:#e9ecef; --card:#fff; --muted:#6c757d; }
+    html, body { height:100%; margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue','Noto Sans',Arial; color:var(--ink);}
+    .wrap { display:grid; grid-template-columns: 420px 1fr; height:100%;}
+    @media (max-width: 1100px) { .wrap{ grid-template-columns: 1fr; } #map{ order:2; height:55vh; } }
+    #sidebar { background:var(--bg); border-right:1px solid var(--border); padding:18px; overflow:auto; }
+    #map { min-height:100%; }
+    .h1 { font-size:1.35rem; margin:0 0 10px; font-weight:700; }
+    .card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:14px; margin:10px 0; }
+    .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .row > * { flex:1 1 140px; }
+    input[type="text"], select { width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:1rem; }
+    input[type="range"] { width:100%; }
+    .btn { background:var(--brand); color:white; padding:10px 14px; border:none; border-radius:10px; font-weight:600; cursor:pointer; }
+    .btn.ghost { background:transparent; border:1px solid var(--border); color:var(--ink);}
+    .filters label { display:flex; gap:8px; align-items:center; margin:6px 0; }
+    .chip { display:inline-block; padding:3px 8px; border-radius:999px; border:1px solid var(--border); font-size:.8rem; color:var(--muted); margin-right:6px;}
+    .item { padding:10px 8px; border-bottom:1px dashed var(--border);}
+    .item:last-child{ border-bottom:none; }
   </style>
 </head>
 <body>
-<header>
-  <h1>🎮 Henderson Family Activities Map</h1>
-</header>
 <div class="wrap">
-  <aside class="panel">
-    <h2>Find activities</h2>
-    <p class="sub">Toggle categories and search the current map area.</p>
-
-    <div class="group">
-      <label class="pill"><input type="checkbox" id="parks" checked> Parks</label>
-      <label class="pill"><input type="checkbox" id="playgrounds" checked> Playgrounds</label>
-      <label class="pill"><input type="checkbox" id="aquatics" checked> Aquatic Centers & Pools</label>
-      <label class="pill"><input type="checkbox" id="rec" checked> Recreation Centers</label>
-      <label class="pill"><input type="checkbox" id="libraries" checked> Libraries</label>
-      <label class="pill"><input type="checkbox" id="skate" checked> Skateparks</label>
-      <label class="pill"><input type="checkbox" id="sports" checked> Sports Fields (soccer/baseball)</label>
-      <div class="divider"></div>
+  <aside id="sidebar">
+    <div class="h1">🎮 Henderson Family Activities Map <span class="chip">Miles</span></div>
+    <p class="muted">Search an address, set a radius in miles, then filter the types of family activities you want to see.</p>
+    <div class="card">
       <div class="row">
-        <button id="searchAreaBtn" class="btn primary">🔎 Search this area</button>
-        <button id="myLocBtn" class="btn small">📍 My location</button>
-        <button id="clearBtn" class="btn small">♻️ Clear</button>
+        <label>
+          <div>📍 Address or Area</div>
+          <input id="search" type="text" placeholder="Enter address, neighborhood, or place…" />
+        </label>
+      </div>
+      <div class="row">
+        <label>
+          <div>🎯 Radius: <span id="radiusLabel">5</span> miles</div>
+          <input id="radius" type="range" min="1" max="25" value="5" step="1" />
+        </label>
+        <div>
+          <div style="margin-bottom:6px;">🧭 Filters</div>
+          <div class="filters">
+            <label><input type="checkbox" class="cat" value="Park" checked /> Park</label>
+            <label><input type="checkbox" class="cat" value="Rec Center" checked /> Rec Center</label>
+            <label><input type="checkbox" class="cat" value="Aquatic" checked /> Aquatic</label>
+            <label><input type="checkbox" class="cat" value="Library" checked /> Library</label>
+            <label><input type="checkbox" class="cat" value="Sports" checked /> Sports Complex</label>
+            <label><input type="checkbox" class="cat" value="Entertainment" checked /> Entertainment</label>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <button class="btn" id="useLocation">Use My Location</button>
+        <button class="btn ghost" id="resetView">Reset</button>
       </div>
     </div>
 
-    <div class="group">
-      <h2>Share & export</h2>
-      <div class="row">
-        <button id="shareBtn" class="btn small">🔗 Copy link</button>
-        <span id="shareStatus" class="badge" style="display:none">Copied</span>
-        <button id="exportBtn" class="btn small">⬇️ Export list (CSV)</button>
-      </div>
-      <p class="note">Link preserves the map view and selected categories.</p>
-    </div>
-
-    <div class="group">
-      <h2>Tip</h2>
-      <p class="note">Click a marker for directions or to open a list of nearby family restaurants.</p>
+    <div class="card">
+      <strong>Results</strong>
+      <div id="list"></div>
     </div>
   </aside>
-
   <main id="map"></main>
 </div>
 
-<footer>
-  <div>Data source: Google Maps Places. Always verify hours/requirements before visiting.</div>
-</footer>
-
+<script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
 <script>
-  const DEFAULT_CENTER = {lat: 36.0395, lng: -114.9817};
-  const DEFAULT_ZOOM = 12;
-  const params = new URLSearchParams(location.hash.slice(1) || location.search.slice(1));
+  const PLACES = [
+    {name:"Cornerstone Park", type:"Park", lat:36.02722, lng:-115.06314, url:"https://www.cityofhenderson.com/our-city/departments/parks-and-recreation/parks-and-trails/parks/cornerstone-park"}
+   ,{name:"Paseo Verde Park & Rec Center", type:"Rec Center", lat:36.02293, lng:-115.07854, url:"https://www.cityofhenderson.com"}
+   ,{name:"Whitney Mesa Recreation Area", type:"Sports", lat:36.07958, lng:-115.04091}
+   ,{name:"Silver Bowl Park", type:"Sports", lat:36.08663, lng:-115.03168}
+   ,{name:"Arroyo Grande Sports Complex", type:"Sports", lat:36.05865, lng:-115.06154}
+   ,{name:"Henderson Aquatic Complex", type:"Aquatic", lat:36.03176, lng:-115.04555}
+   ,{name:"Desert Breeze Aquatic (Henderson)", type:"Aquatic", lat:36.01010, lng:-115.05920}
+   ,{name:"Gibson Library", type:"Library", lat:36.02746, lng:-115.07913}
+   ,{name:"Henderson Libraries - Paseo Verde", type:"Library", lat:36.02232, lng:-115.07507}
+   ,{name:"Henderson Pavilion", type:"Entertainment", lat:36.02458, lng:-115.08169}
+   ,{name:"Cowabunga Bay", type:"Entertainment", lat:36.07245, lng:-115.03797}
+   ,{name:"Lake Las Vegas Village", type:"Entertainment", lat:36.11102, lng:-114.92775}
+  ];
 
-  let map, placesService;
-  let markers = [];
-  let clusterer;
-
-  const catDefs = {
-    parks:      { type:'park',              keyword:''            , color:'#34a853' },
-    playgrounds:{ type:'park',              keyword:'playground'  , color:'#0ea5e9' },
-    aquatics:   { type:'establishment',     keyword:'aquatic center OR pool', color:'#ef4444' },
-    rec:        { type:'establishment',     keyword:'recreation center',      color:'#a855f7' },
-    libraries:  { type:'library',           keyword:''            , color:'#f59e0b' },
-    skate:      { type:'park',              keyword:'skatepark OR skate park' , color:'#22c55e' },
-    sports:     { type:'park',              keyword:'soccer field OR baseball field', color:'#10b981' }
-  };
-
-  function markerIcon(color) {
-    return {
-      url: `https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|${color.replace('#','')}`,
-      scaledSize: new google.maps.Size(21,34)
-    };
+  let map, userMarker, radiusCircle, info, clusterer, markers = [];
+  function typeColor(t) { 
+    switch(t){
+      case "Park": return "#22c55e";
+      case "Rec Center": return "#0ea5e9";
+      case "Aquatic": return "#06b6d4";
+      case "Library": return "#8b5cf6";
+      case "Sports": return "#ef4444";
+      case "Entertainment": return "#f59e0b";
+      default: return "#374151";
+    }
   }
 
-  function addMarker(place, color) {
-    const m = new google.maps.Marker({
-      position: place.geometry.location,
-      map,
-      icon: markerIcon(color),
-      title: place.name
+  function initMap() {
+    map = new google.maps.Map(document.getElementById('map'), { center: {lat:36.0319, lng:-115.0450}, zoom: 12, mapId: "DEMO_MAP_ID" });
+    info = new google.maps.InfoWindow();
+
+    const acInput = document.getElementById('search');
+    const ac = new google.maps.places.Autocomplete(acInput, { fields:["geometry","name","formatted_address"] });
+    ac.addListener("place_changed", () => {
+      const place = ac.getPlace();
+      if (!place.geometry) return;
+      setUserLocation(place.geometry.location, place.formatted_address || place.name);
     });
-    const gmapsLink = `https://www.google.com/maps/place/?q=place_id:${place.place_id}`;
-    const foodLink = `https://www.google.com/maps/search/${encodeURIComponent('family restaurants near ' + place.name + ' ' + (place.vicinity||''))}`;
-    const content = `
-      <div style="font-family:system-ui,Roboto,Arial,sans-serif;max-width:260px">
-        <div style="font-weight:700;margin-bottom:4px">${place.name}</div>
-        <div style="font-size:12px;color:#444;margin-bottom:6px">${place.vicinity||''}</div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap">
-          <a target="_blank" href="${gmapsLink}" style="text-decoration:none;padding:6px 8px;border:1px solid #ddd;border-radius:6px">View in Maps</a>
-          <a target="_blank" href="${foodLink}" style="text-decoration:none;padding:6px 8px;border:1px solid #ddd;border-radius:6px">Eat nearby</a>
-        </div>
-      </div>
-    `;
-    const iw = new google.maps.InfoWindow({content});
-    m.addListener('click',()=>iw.open(map,m));
-    markers.push(m);
-  }
 
-  function clearMarkers() {
-    if (clusterer) clusterer.clearMarkers();
-    markers.forEach(m=>m.setMap(null));
-    markers = [];
-  }
-
-  function buildShare() {
-    const center = map.getCenter();
-    const z = map.getZoom();
-    const on = Object.keys(catDefs).filter(id=>document.getElementById(id).checked).join(',');
-    const p = new URLSearchParams({ lat:center.lat().toFixed(6), lng:center.lng().toFixed(6), z, on });
-    return location.href.split('#')[0] + '#' + p.toString();
-  }
-
-  function copyShare() {
-    const url = buildShare();
-    navigator.clipboard.writeText(url).then(()=>{
-      const badge = document.getElementById('shareStatus');
-      badge.style.display='inline-block';
-      setTimeout(()=>badge.style.display='none',1500);
-    });
-  }
-
-  function exportCSV() {
-    if (!markers.length) return alert('Run a search first');
-    const header = 'Name,Address,Lat,Lng,Google Maps URL\n';
-    let rows = '';
-    const bounds = map.getBounds();
-    markers.forEach(m=>{
-      if (!bounds || bounds.contains(m.getPosition())) {
-        const lat = m.getPosition().lat();
-        const lng = m.getPosition().lng();
-        const name = '"' + (m.getTitle()||'').replace(/"/g,'""') + '"';
-        const link = `https://www.google.com/maps?q=${lat},${lng}`;
-        rows += `${name},,,${lat},${lng},${link}\n`;
-      }
-    });
-    const blob = new Blob([header + rows], {type:'text/csv'});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'henderson-family-activities.csv';
-    a.click();
-    setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
-  }
-
-  function searchCategory(def){
-    const bounds = map.getBounds();
-    if (!bounds) return;
-    const request = {
-      bounds,
-      type: def.type,
-      keyword: def.keyword
-    };
-    return new Promise(resolve=>{
-      placesService.nearbySearch(request,(results,status,pagination)=>{
-        if (status !== google.maps.places.PlacesServiceStatus.OK || !results) {
-          resolve([]);
-          return;
-        }
-        results.forEach(p=>addMarker(p, def.color));
-        if (pagination && pagination.hasNextPage) {
-          setTimeout(()=>pagination.nextPage(), 1000);
-        }
-        resolve(results);
+    // Create markers
+    markers = PLACES.map(p => new google.maps.Marker({ 
+      position: {lat:p.lat, lng:p.lng}, 
+      title:p.name,
+      icon: { path: google.maps.SymbolPath.CIRCLE, scale: 8, fillColor:typeColor(p.type), fillOpacity:1, strokeColor:"#fff", strokeWeight:2 }
+    }));
+    markers.forEach((m, i) => {
+      m._place = PLACES[i];
+      m.addListener('click', () => {
+        const s = m._place;
+        info.setContent(`<div style="font-weight:700">${s.name}</div><div>${s.type}</div>${s.url?`<a href="${s.url}" target="_blank" rel="noopener">More info</a>`:""}`);
+        info.open(map, m);
       });
     });
-  }
 
-  async function searchThisArea(){
-    clearMarkers();
-    const tasks = [];
-    Object.entries(catDefs).forEach(([id,def])=>{
-      if (document.getElementById(id).checked) tasks.push(searchCategory(def));
+    clusterer = new markerClusterer.MarkerClusterer({ map, markers });
+
+    document.getElementById('radius').addEventListener('input', (e) => {
+      document.getElementById('radiusLabel').textContent = e.target.value;
+      refreshWithin();
     });
-    await Promise.all(tasks);
-    if (markers.length && window.MarkerClusterer) {
-      clusterer = new MarkerClusterer({ map, markers });
-    }
-  }
-
-  window.initActivitiesMap = () => {
-    const lat = parseFloat(params.get('lat')) || DEFAULT_CENTER.lat;
-    const lng = parseFloat(params.get('lng')) || DEFAULT_CENTER.lng;
-    const z = parseInt(params.get('z') || DEFAULT_ZOOM, 10);
-    const on = (params.get('on') || '').split(',').filter(Boolean);
-    map = new google.maps.Map(document.getElementById('map'), { center:{lat,lng}, zoom:z, mapId:'DEMO_MAP_ID' });
-    placesService = new google.maps.places.PlacesService(map);
-
-    if (on.length) {
-      Object.keys(catDefs).forEach(id=>document.getElementById(id).checked = on.includes(id));
-    }
-
-    document.getElementById('searchAreaBtn').addEventListener('click', searchThisArea);
-    document.getElementById('clearBtn').addEventListener('click', clearMarkers);
-    document.getElementById('myLocBtn').addEventListener('click', ()=>{
-      if (!navigator.geolocation) return alert('Geolocation not supported');
-      navigator.geolocation.getCurrentPosition((pos)=>{
-        const loc = {lat:pos.coords.latitude,lng:pos.coords.longitude};
-        map.panTo(loc); map.setZoom(14);
-      }, ()=>alert('Could not get your location'));
-    });
-    document.getElementById('shareBtn').addEventListener('click', copyShare);
-    document.getElementById('exportBtn').addEventListener('click', exportCSV);
-
-    map.addListener('idle', ()=>{
-      const url = buildShare();
-      history.replaceState(null,'',url);
+    document.querySelectorAll('.cat').forEach(cb => cb.addEventListener('change', refreshWithin));
+    document.getElementById('useLocation').addEventListener('click', geolocate);
+    document.getElementById('resetView').addEventListener('click', () => {
+      map.setCenter({lat:36.0319, lng:-115.0450}); map.setZoom(12);
+      clearUser();
+      renderList([]);
+      // show all markers
+      markers.forEach(m=>m.setVisible(true));
+      clusterer.repaint();
     });
 
-    searchThisArea();
+    // default: show all
+    renderList(PLACES.slice(0,8));
   }
+
+  function setUserLocation(latLng, label="Selected location") {
+    if (userMarker) userMarker.setMap(null);
+    userMarker = new google.maps.Marker({ position: latLng, map, title: label, icon: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png" });
+    map.panTo(latLng); map.setZoom(13);
+    drawRadius(latLng);
+    refreshWithin();
+  }
+
+  function drawRadius(latLng) {
+    const miles = parseFloat(document.getElementById('radius').value || "5");
+    const meters = miles * 1609.344;
+    if (radiusCircle) radiusCircle.setMap(null);
+    radiusCircle = new google.maps.Circle({ map, center: latLng, radius: meters, fillColor:"#fd7e14", fillOpacity:0.08, strokeColor:"#fd7e14", strokeOpacity:0.4, strokeWeight:2 });
+  }
+
+  function clearUser() {
+    if (userMarker) userMarker.setMap(null);
+    if (radiusCircle) radiusCircle.setMap(null);
+    userMarker = null; radiusCircle = null;
+  }
+
+  function geolocate() {
+    if (!navigator.geolocation) return alert("Geolocation not supported.");
+    navigator.geolocation.getCurrentPosition((pos) => {
+      const latLng = new google.maps.LatLng(pos.coords.latitude, pos.coords.longitude);
+      setUserLocation(latLng, "Your location");
+    }, () => alert("Could not get your location."), { enableHighAccuracy: true, timeout: 10000 });
+  }
+
+  function refreshWithin() {
+    const activeTypes = Array.from(document.querySelectorAll('.cat:checked')).map(cb=>cb.value);
+    const miles = parseFloat(document.getElementById('radius').value || "5");
+    const limitMeters = miles * 1609.344;
+
+    let origin = null;
+    if (userMarker) origin = userMarker.getPosition();
+
+    const list = [];
+    markers.forEach(m => {
+      const s = m._place;
+      const typeOk = activeTypes.includes(s.type);
+      let inRange = true;
+      let dMiles = null;
+      if (origin) {
+        const dMeters = google.maps.geometry.spherical.computeDistanceBetween(origin, m.getPosition());
+        dMiles = dMeters / 1609.344;
+        inRange = (dMeters <= limitMeters);
+      }
+      const visible = typeOk && (!origin || inRange);
+      m.setVisible(visible);
+      if (visible) list.push({ ...s, distanceMiles: dMiles });
+    });
+    clusterer.repaint();
+
+    list.sort((a,b) => {
+      const ad = (a.distanceMiles ?? 1e9);
+      const bd = (b.distanceMiles ?? 1e9);
+      return ad - bd;
+    });
+    renderList(list);
+  }
+
+  function renderList(list) {
+    const el = document.getElementById('list');
+    el.innerHTML = "";
+    if (!list || list.length===0) { el.innerHTML = '<div class="muted">No results for the current filters/radius.</div>'; return; }
+    list.forEach(s => {
+      const row = document.createElement('div');
+      row.className = "item";
+      const dist = (s.distanceMiles!=null) ? ` · ${s.distanceMiles.toFixed(1)} mi` : "";
+      row.innerHTML = `<div><strong>${s.name}</strong> · ${s.type}${dist} ${s.url?`· <a href="${s.url}" target="_blank" rel="noopener">More info</a>`:""}</div>`;
+      row.addEventListener('click', () => {
+        const m = markers.find(mm => mm._place.name === s.name);
+        if (m) { map.panTo(m.getPosition()); google.maps.event.trigger(m,'click'); }
+      });
+      el.appendChild(row);
+    });
+  }
+
+  window.initMap = initMap;
 </script>
-<script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
-<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&libraries=places&callback=initActivitiesMap" async defer></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCFlwNjYFjt1d5XCY77KxwarlkBSwl5Usk&libraries=places,geometry&v=weekly&region=US&language=en&callback=initMap" async defer></script>
 </body>
 </html>
