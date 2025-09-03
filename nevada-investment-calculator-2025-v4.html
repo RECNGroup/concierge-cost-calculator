@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Nevada Investment Calculator 2025</title>
+<meta name="description" content="Calculate Nevada real estate investment returns, cash flow, cap rate, cash-on-cash, DSCR, and 5-year projections with no state income tax assumption." />
+<style>
+  :root{
+    --brand:#007bff;
+    --teal:#17a2b8;
+    --green:#28a745;
+    --bg:#f8f9fa;
+    --card:#ffffff;
+    --text:#1f2937;
+    --muted:#6b7280;
+    --danger:#dc3545;
+    --warning:#ffc107;
+    --shadow:0 8px 30px rgba(0,0,0,.08);
+    --radius:14px;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    color:var(--text);
+    background:linear-gradient(180deg,#ffffff, var(--bg));
+  }
+  .wrap{
+    max-width:1100px;
+    margin:32px auto;
+    padding:0 16px 48px;
+  }
+  header{
+    background:linear-gradient(135deg, var(--brand), var(--teal));
+    color:#fff;
+    padding:28px 24px;
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    margin-bottom:18px;
+  }
+  header h1{
+    margin:0;
+    font-size:28px;
+    letter-spacing:.2px;
+  }
+  header p{margin:8px 0 0; opacity:.95}
+  .grid{
+    display:grid;
+    grid-template-columns: 1fr;
+    gap:16px;
+  }
+  @media(min-width:940px){
+    .grid{ grid-template-columns: 1.15fr .85fr; }
+  }
+  .card{
+    background:var(--card);
+    border:1px solid #e5e7eb;
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:18px;
+  }
+  h2{
+    font-size:20px; margin:0 0 12px;
+  }
+  .row{
+    display:grid;
+    grid-template-columns: 1fr 120px 110px;
+    gap:10px;
+    align-items:center;
+    padding:8px 0;
+    border-bottom:1px dashed #e5e7eb;
+  }
+  .row:last-child{border-bottom:none}
+  .row label{font-size:14px; color:#111827}
+  .row input{
+    width:100%;
+    padding:10px 10px;
+    border:1px solid #d1d5db;
+    border-radius:10px;
+    font-size:14px;
+  }
+  .row .unit{font-size:13px; color:var(--muted); text-align:right; padding-right:6px}
+  .hint{font-size:12px;color:var(--muted); margin-top:6px}
+  .section-title{margin:18px 0 6px; font-weight:700; font-size:13px; color:#374151; text-transform:uppercase; letter-spacing:.06em}
+  .kpi-wrap{
+    display:grid; gap:12px; grid-template-columns:1fr 1fr;
+  }
+  @media(min-width:740px){
+    .kpi-wrap{ grid-template-columns: repeat(4, 1fr); }
+  }
+  .kpi{
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:12px;
+    padding:14px;
+    box-shadow:var(--shadow);
+  }
+  .kpi h3{ margin:0; font-size:12px; color:#6b7280; font-weight:600; text-transform:uppercase; letter-spacing:.04em}
+  .kpi .val{ margin-top:6px; font-size:20px; font-weight:800 }
+  .kpi.small .val{ font-size:18px }
+  .pill{
+    display:inline-block; padding:6px 10px; border-radius:999px; font-size:12px; font-weight:700;
+    background:#eef2ff; color:#4338ca; border:1px solid #c7d2fe;
+  }
+  .btns{ display:flex; gap:10px; flex-wrap:wrap; margin-top:12px }
+  button{
+    padding:10px 14px;
+    border-radius:10px;
+    border:0;
+    cursor:pointer;
+    font-weight:700;
+    box-shadow:var(--shadow);
+  }
+  .primary{ background:var(--brand); color:#fff }
+  .ghost{ background:#fff; border:1px solid #e5e7eb; color:#111827 }
+  .danger{ background:var(--danger); color:#fff }
+  .note{
+    background:#fff7ed; border:1px solid #fed7aa; color:#7c2d12;
+    padding:12px; border-radius:10px; font-size:13px; margin-top:12px
+  }
+  .table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:13px;
+    margin-top:8px;
+  }
+  .table th,.table td{
+    border:1px solid #e5e7eb;
+    padding:10px;
+    text-align:right;
+  }
+  .table th{ background:#f3f4f6; text-align:left }
+  .foot{
+    margin-top:14px; font-size:12px; color:#6b7280
+  }
+  .ok{color:var(--green)}
+  .bad{color:var(--danger)}
+  .warn{color:#d97706}
+  .muted{color:var(--muted)}
+  .flexrow{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+  .copy{
+    font-size:12px; background:#111827; color:#fff; border-radius:999px; padding:6px 10px;
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="flexrow">
+        <h1>💰 Nevada Investment Calculator (2025)</h1>
+        <span class="pill">No State Income Tax Assumed</span>
+      </div>
+      <p>Instant cap rate, cash-on-cash, DSCR, monthly cash flow, break‑even rent, and projected equity / sale proceeds. Built for Nevada investors.</p>
+    </header>
+
+    <div class="grid">
+      <section class="card">
+        <h2>Inputs</h2>
+
+        <div class="section-title">Acquisition</div>
+        <div class="row">
+          <label>Purchase Price</label>
+          <div><input id="price" type="number" value="485000" min="0" step="1000"></div>
+          <div class="unit">$</div>
+        </div>
+        <div class="row">
+          <label>Down Payment</label>
+          <div><input id="downPct" type="number" value="25" min="0" max="100" step="0.1"></div>
+          <div class="unit">%</div>
+        </div>
+        <div class="row">
+          <label>Closing Costs (cash)</label>
+          <div><input id="closePct" type="number" value="2" min="0" max="15" step="0.1"></div>
+          <div class="unit">% of price</div>
+        </div>
+
+        <div class="section-title">Financing</div>
+        <div class="row">
+          <label>Interest Rate (fixed)</label>
+          <div><input id="rate" type="number" value="6.5" min="0" max="15" step="0.01"></div>
+          <div class="unit">% APR</div>
+        </div>
+        <div class="row">
+          <label>Loan Term</label>
+          <div><input id="term" type="number" value="30" min="1" max="40" step="1"></div>
+          <div class="unit">years</div>
+        </div>
+
+        <div class="section-title">Income</div>
+        <div class="row">
+          <label>Monthly Rent (Year 1)</label>
+          <div><input id="rent" type="number" value="2800" min="0" step="50"></div>
+          <div class="unit">$ / mo</div>
+        </div>
+        <div class="row">
+          <label>Vacancy</label>
+          <div><input id="vacancy" type="number" value="5" min="0" max="100" step="0.1"></div>
+          <div class="unit">% of rent</div>
+        </div>
+
+        <div class="section-title">Operating Expenses</div>
+        <div class="row">
+          <label>Property Tax Rate</label>
+          <div><input id="taxRate" type="number" value="0.6" min="0" max="10" step="0.01"></div>
+          <div class="unit">% of price / yr</div>
+        </div>
+        <div class="row">
+          <label>Insurance (annual)</label>
+          <div><input id="ins" type="number" value="1200" min="0" step="50"></div>
+          <div class="unit">$ / yr</div>
+        </div>
+        <div class="row">
+          <label>HOA (monthly)</label>
+          <div><input id="hoa" type="number" value="0" min="0" step="10"></div>
+          <div class="unit">$ / mo</div>
+        </div>
+        <div class="row">
+          <label>Management</label>
+          <div><input id="mgmt" type="number" value="8" min="0" max="30" step="0.1"></div>
+          <div class="unit">% of rent</div>
+        </div>
+        <div class="row">
+          <label>Maintenance/CapEx Reserve</label>
+          <div><input id="maint" type="number" value="5" min="0" max="30" step="0.1"></div>
+          <div class="unit">% of rent</div>
+        </div>
+        <div class="row">
+          <label>Owner-Paid Utilities (monthly)</label>
+          <div><input id="utils" type="number" value="0" min="0" step="10"></div>
+          <div class="unit">$ / mo</div>
+        </div>
+        <div class="row">
+          <label>Other Expenses (monthly)</label>
+          <div><input id="other" type="number" value="0" min="0" step="10"></div>
+          <div class="unit">$ / mo</div>
+        </div>
+
+        <div class="section-title">Assumptions (Projections)</div>
+        <div class="row">
+          <label>Annual Appreciation</label>
+          <div><input id="app" type="number" value="8.5" min="-10" max="25" step="0.1"></div>
+          <div class="unit">% / yr</div>
+        </div>
+        <div class="row">
+          <label>Rent Growth</label>
+          <div><input id="rentGrow" type="number" value="3" min="-10" max="25" step="0.1"></div>
+          <div class="unit">% / yr</div>
+        </div>
+        <div class="row">
+          <label>Hold Period</label>
+          <div><input id="hold" type="number" value="5" min="1" max="40" step="1"></div>
+          <div class="unit">years</div>
+        </div>
+        <div class="row">
+          <label>Selling Costs</label>
+          <div><input id="sellCost" type="number" value="7" min="0" max="15" step="0.1"></div>
+          <div class="unit">% of sale</div>
+        </div>
+        <div class="row">
+          <label>State Income Tax (comparison)</label>
+          <div><input id="stateTax" type="number" value="0" min="0" max="20" step="0.1"></div>
+          <div class="unit">%</div>
+        </div>
+
+        <div class="btns">
+          <button class="primary" id="calcBtn">Calculate Returns</button>
+          <button class="ghost" id="resetBtn">Reset</button>
+          <button class="danger" id="copyBtn" title="Copy an &lt;iframe&gt; embed snippet">Copy Embed Code</button>
+        </div>
+        <div class="hint">Tip: Set <b>State Income Tax</b> to your previous state (e.g., CA 13.3%) to see an illustrative yearly savings vs. Nevada.</div>
+        <div class="note">This tool is for educational estimates only. Actual results depend on lender terms, taxes, and your situation. Consult your advisor.</div>
+      </section>
+
+      <section class="card">
+        <h2>Results</h2>
+        <div class="kpi-wrap">
+          <div class="kpi"><h3>Cap Rate</h3><div id="cap" class="val">—</div></div>
+          <div class="kpi"><h3>Cash-on-Cash</h3><div id="coc" class="val">—</div></div>
+          <div class="kpi"><h3>DSCR</h3><div id="dscr" class="val">—</div></div>
+          <div class="kpi"><h3>Monthly Cash Flow</h3><div id="cf" class="val">—</div></div>
+
+          <div class="kpi small"><h3>Monthly P&amp;I</h3><div id="mpi" class="val">—</div></div>
+          <div class="kpi small"><h3>Total Monthly OpEx</h3><div id="opex" class="val">—</div></div>
+          <div class="kpi small"><h3>Breakeven Rent</h3><div id="breakeven" class="val">—</div></div>
+          <div class="kpi small"><h3>Cash Needed</h3><div id="cashNeeded" class="val">—</div></div>
+        </div>
+
+        <div class="section-title">Year 1 Statement</div>
+        <table class="table">
+          <tbody>
+            <tr><th>Gross Rent (annual)</th><td id="yrRent">—</td></tr>
+            <tr><th>Vacancy</th><td id="yrVac">—</td></tr>
+            <tr><th>Effective Gross Income</th><td id="yrEGI">—</td></tr>
+            <tr><th>Operating Expenses</th><td id="yrOpEx">—</td></tr>
+            <tr><th>Net Operating Income (NOI)</th><td id="yrNOI">—</td></tr>
+            <tr><th>Debt Service (annual)</th><td id="yrDebt">—</td></tr>
+            <tr><th>Before-Tax Cash Flow</th><td id="yrBTCF">—</td></tr>
+          </tbody>
+        </table>
+
+        <div class="section-title">Hold Period Projection</div>
+        <table class="table">
+          <tbody>
+            <tr><th>Projected Sale Price</th><td id="projPrice">—</td></tr>
+            <tr><th>Loan Balance at Sale</th><td id="projBal">—</td></tr>
+            <tr><th>Estimated Sale Costs</th><td id="projCosts">—</td></tr>
+            <tr><th>Net Sale Proceeds</th><td id="projNet">—</td></tr>
+            <tr><th>Total Equity (at sale)</th><td id="projEquity">—</td></tr>
+            <tr><th>Illustrative State-Tax Saved / Yr</th><td id="projTaxSav">—</td></tr>
+            <tr><th>Simple 5-yr IRR (cash flows)</th><td id="projIRR">—</td></tr>
+          </tbody>
+        </table>
+        <div class="foot">IRR includes: initial cash outlay; yearly BTCF grown by rent growth; and net sale proceeds in final year. Taxes and depreciation are excluded.</div>
+      </section>
+    </div>
+
+    <p class="foot">© RECN – Nevada Investment Calculator. You may embed this tool on <span class="muted">recngroup.com</span> via the “Copy Embed Code” button.</p>
+  </div>
+
+<script>
+(function(){
+  const $ = (id)=>document.getElementById(id);
+  const fmt$ = (n)=> isFinite(n) ? n.toLocaleString(undefined,{style:'currency', currency:'USD', maximumFractionDigits:0}) : '—';
+  const fmt$2 = (n)=> isFinite(n) ? n.toLocaleString(undefined,{style:'currency', currency:'USD', maximumFractionDigits:2}) : '—';
+  const fmtP = (n)=> isFinite(n) ? n.toFixed(2)+'%' : '—';
+  const fmtD = (n)=> isFinite(n) ? n.toFixed(2) : '—';
+
+  function pmt(rate, nper, pv){
+    if(rate === 0) return -(pv / nper);
+    const r = rate;
+    return -(pv*r*Math.pow(1+r,nper)) / (Math.pow(1+r,nper)-1);
+  }
+  function loanBalance(pv, rate, nper, pmtAmt, paidPeriods){
+    const r = rate;
+    if(r === 0){
+      return pv + pmtAmt*paidPeriods; // negative pmtAmt so + here
+    }
+    const bal = pv*Math.pow(1+r,paidPeriods) + pmtAmt*( (Math.pow(1+r,paidPeriods)-1)/r );
+    return bal;
+  }
+  function irr(cashflows){
+    // Newton-Raphson
+    let guess = 0.1;
+    for(let i=0;i<100;i++){
+      let f=0, df=0;
+      for(let t=0;t<cashflows.length;t++){
+        const cf = cashflows[t];
+        f += cf / Math.pow(1+guess, t);
+        if(t>0) df += -t*cf / Math.pow(1+guess, t+1);
+      }
+      const newGuess = guess - f/df;
+      if(!isFinite(newGuess)) break;
+      if(Math.abs(newGuess-guess) < 1e-7) { guess = newGuess; break; }
+      guess = newGuess;
+    }
+    return guess;
+  }
+
+  function calc(){
+    const price = +$('price').value||0;
+    const downPct = (+$('downPct').value||0)/100;
+    const closePct = (+$('closePct').value||0)/100;
+    const rate = (+$('rate').value||0)/100;
+    const term = +$('term').value||30;
+    const rent = +$('rent').value||0;
+    const vacancyPct = (+$('vacancy').value||0)/100;
+
+    const taxRate = (+$('taxRate').value||0)/100;
+    const ins = +$('ins').value||0;
+    const hoa = +$('hoa').value||0;
+    const mgmtPct = (+$('mgmt').value||0)/100;
+    const maintPct = (+$('maint').value||0)/100;
+    const utils = +$('utils').value||0;
+    const other = +$('other').value||0;
+
+    const app = (+$('app').value||0)/100;
+    const rentGrow = (+$('rentGrow').value||0)/100;
+    const hold = Math.max(1, (+$('hold').value||5));
+    const sellCostPct = (+$('sellCost').value||0)/100;
+    const stateTax = (+$('stateTax').value||0)/100;
+
+    const loanAmt = price*(1-downPct);
+    const mRate = rate/12;
+    const nper = term*12;
+    const mPmt = -pmt(mRate, nper, loanAmt);
+
+    const cashNeeded = price*downPct + price*closePct;
+
+    // Year 1 income/expenses
+    const gross = rent*12;
+    const vac = gross*vacancyPct;
+    const egi = gross - vac;
+
+    const annualTax = price*taxRate;
+    const annualMgmt = gross*mgmtPct;
+    const annualMaint = gross*maintPct;
+    const annualHOA = hoa*12;
+    const annualUtils = utils*12;
+    const annualOther = other*12;
+    const opEx = annualTax + ins + annualMgmt + annualMaint + annualHOA + annualUtils + annualOther;
+
+    const noi = egi - opEx;
+    const ads = mPmt*12;
+    const btcflow = noi - ads;
+
+    // KPIs
+    const cap = price>0 ? noi/price : NaN;
+    const coc = cashNeeded>0 ? btcflow/cashNeeded : NaN;
+    const dscr = ads>0 ? noi/ads : NaN;
+    const monthlyCF = btcflow/12;
+
+    // Breakeven Rent (monthly)
+    const monthlyOpEx = opEx/12;
+    const breakevenRent = (monthlyOpEx + mPmt) / (1 - vacancyPct);
+
+    // Projection to sale
+    const projPrice = price*Math.pow(1+app, hold);
+    const balAtSale = loanBalance(loanAmt, mRate, nper, -mPmt, hold*12);
+    const estCost = projPrice*sellCostPct;
+    const netSale = projPrice - estCost - balAtSale;
+    const equityAtSale = projPrice - balAtSale;
+
+    // Illustrative state tax saved (vs. non-NV) on Year-1 cash flow (if positive)
+    const taxSaved = Math.max(0, btcflow) * stateTax;
+
+    // Simple IRR: cash flows each year, rent grows by rentGrow, opEx tied partly to rent (mgmt, maint) and fixed parts
+    const flows = [];
+    flows.push(-cashNeeded); // t0
+    let yrRent = rent*12, yrOp = opEx, yrNOI = noi, yrBTCF = btcflow;
+    for(let y=1; y<=hold; y++){
+      if(y>1){
+        yrRent *= (1+rentGrow);
+        // components: mgmt & maint scale with rent; others assumed flat for simplicity
+        const varComp = (mgmtPct+maintPct)*yrRent;
+        const fixedOp = annualTax + ins + annualHOA + annualUtils + annualOther;
+        yrOp = varComp + fixedOp;
+        yrNOI = (yrRent - yrRent*vacancyPct) - yrOp;
+        yrBTCF = yrNOI - ads;
+      }
+      if(y<hold){
+        flows.push(yrBTCF);
+      }else{
+        flows.push(yrBTCF + netSale);
+      }
+    }
+    const simpleIRR = irr(flows);
+
+    // Write KPIs
+    $('cap').textContent = fmtP(cap*100);
+    $('coc').textContent = fmtP(coc*100);
+    $('dscr').innerHTML = (isFinite(dscr)? fmtD(dscr):'—') + (isFinite(dscr)? (dscr>=1.25?' <span class="ok">✓</span>': dscr>=1.0?' <span class="warn">~</span>':' <span class="bad">⚠</span>') : '');
+    $('cf').textContent = fmt$2(monthlyCF);
+
+    $('mpi').textContent = fmt$2(mPmt);
+    $('opex').textContent = fmt$2(monthlyOpEx);
+    $('breakeven').textContent = isFinite(breakevenRent)? fmt$2(breakevenRent):'—';
+    $('cashNeeded').textContent = fmt$2(cashNeeded);
+
+    $('yrRent').textContent = fmt$2(gross);
+    $('yrVac').textContent = fmt$2(vac);
+    $('yrEGI').textContent = fmt$2(egi);
+    $('yrOpEx').textContent = fmt$2(opEx);
+    $('yrNOI').textContent = fmt$2(noi);
+    $('yrDebt').textContent = fmt$2(ads);
+    $('yrBTCF').textContent = fmt$2(btcflow);
+
+    $('projPrice').textContent = fmt$2(projPrice);
+    $('projBal').textContent = fmt$2(balAtSale);
+    $('projCosts').textContent = fmt$2(estCost);
+    $('projNet').textContent = fmt$2(netSale);
+    $('projEquity').textContent = fmt$2(equityAtSale);
+    $('projTaxSav').textContent = stateTax>0 ? fmt$2(taxSaved) + ' / yr' : '—';
+    $('projIRR').textContent = isFinite(simpleIRR) ? fmtP(simpleIRR*100) : '—';
+  }
+
+  $('calcBtn').addEventListener('click', calc);
+  $('resetBtn').addEventListener('click', ()=>{ document.querySelectorAll('input').forEach(i=>i.value=i.defaultValue); calc(); });
+  $('copyBtn').addEventListener('click', ()=>{
+    const src = location.href; // works when hosted; for local file, user should swap domain
+    const iframe = `<iframe src="${src}" width="100%" height="1200" style="border:0;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,.08)" title="Nevada Investment Calculator"></iframe>`;
+    navigator.clipboard.writeText(iframe).then(()=>{
+      const btn = $('copyBtn');
+      const old = btn.textContent; btn.textContent = 'Copied!';
+      setTimeout(()=>btn.textContent=old,1500);
+    });
+  });
+
+  // Auto-calc on load
+  calc();
+})();
+</script>
+</body>
+</html>
