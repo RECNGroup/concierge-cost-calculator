@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Henderson Property Tax Payment Calculator 2025</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .calculator-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .calculator-header {
+            background: linear-gradient(135deg, #2c5530 0%, #7ba05b 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .calculator-header h1 {
+            margin: 0;
+            font-size: 2.2em;
+            font-weight: bold;
+        }
+        .calculator-header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        .calculator-body {
+            padding: 40px;
+        }
+        .input-section {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        .input-group {
+            margin-bottom: 25px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c5530;
+            font-size: 1.1em;
+        }
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e1e1;
+            border-radius: 8px;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+        .input-group input:focus, .input-group select:focus {
+            border-color: #7ba05b;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(123, 160, 91, 0.1);
+            transform: translateY(-1px);
+        }
+        .payment-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 25px 0;
+        }
+        .payment-option {
+            background: white;
+            padding: 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        .payment-option:hover {
+            border-color: #7ba05b;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .payment-option.selected {
+            border-color: #2c5530;
+            background: linear-gradient(135deg, #f0f6f0 0%, #e8f4e8 100%);
+        }
+        .payment-option h3 {
+            margin: 0 0 10px 0;
+            color: #2c5530;
+        }
+        .payment-option p {
+            margin: 0;
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+        .calculate-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #2c5530 0%, #7ba05b 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.3em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 20px 0;
+        }
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(44, 85, 48, 0.3);
+        }
+        .results {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 30px;
+            border-radius: 15px;
+            margin-top: 30px;
+            display: none;
+        }
+        .results.show {
+            display: block;
+            animation: slideIn 0.5s ease;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .payment-schedule {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 20px 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .schedule-header {
+            background: linear-gradient(135deg, #2c5530 0%, #7ba05b 100%);
+            color: white;
+            padding: 15px 20px;
+            font-weight: bold;
+        }
+        .schedule-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 10px;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e9ecef;
+            align-items: center;
+        }
+        .schedule-row:last-child {
+            border-bottom: none;
+            background: #f8f9fa;
+            font-weight: bold;
+        }
+        .penalty-info {
+            background: #fff3cd;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 5px solid #ffc107;
+        }
+        .penalty-info h4 {
+            margin: 0 0 10px 0;
+            color: #856404;
+        }
+        .penalty-info p {
+            margin: 0;
+            color: #856404;
+            line-height: 1.5;
+        }
+        .payment-methods {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .payment-method {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            text-align: center;
+        }
+        .payment-method h4 {
+            margin: 0 0 15px 0;
+            color: #2c5530;
+        }
+        .payment-method .fee {
+            background: #e8f4f0;
+            padding: 8px 12px;
+            border-radius: 5px;
+            display: inline-block;
+            margin: 5px 0;
+            font-weight: bold;
+            color: #2c5530;
+        }
+        .info-box {
+            background: #e8f4f0;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 5px solid #7ba05b;
+        }
+        .info-box h3 {
+            margin: 0 0 10px 0;
+            color: #2c5530;
+        }
+        .info-box p {
+            margin: 0;
+            color: #495057;
+            line-height: 1.5;
+        }
+        .total-summary {
+            background: linear-gradient(135deg, #2c5530 0%, #7ba05b 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .total-summary h3 {
+            margin: 0 0 15px 0;
+            font-size: 1.5em;
+        }
+        .total-amount {
+            font-size: 2.2em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        @media (max-width: 768px) {
+            .calculator-body {
+                padding: 20px;
+            }
+            .payment-options {
+                grid-template-columns: 1fr;
+            }
+            .schedule-row {
+                grid-template-columns: 1fr 1fr;
+                gap: 5px;
+                font-size: 0.9em;
+            }
+            .payment-methods {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator-container">
+        <div class="calculator-header">
+            <h1>💳 Henderson Property Tax Payment Calculator</h1>
+            <p>Plan your property tax payments with Clark County's flexible payment options</p>
+        </div>
+        
+        <div class="calculator-body">
+            <div class="info-box">
+                <h3>Henderson Property Tax Payment Options</h3>
+                <p>Clark County offers flexible payment options: pay in full by August or split into two installments. Choose the payment plan that works best for your budget and cash flow needs.</p>
+            </div>
+
+            <div class="input-section">
+                <form id="paymentCalculator">
+                    <div class="input-group">
+                        <label for="annualTax">Annual Property Tax Amount ($)</label>
+                        <input type="number" id="annualTax" placeholder="Enter your annual tax bill (e.g., 4500)" min="100" max="100000" step="1" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="paymentOption">Choose Payment Schedule</label>
+                        <div class="payment-options">
+                            <div class="payment-option" data-option="full">
+                                <h3>💰 Pay in Full</h3>
+                                <p>Single payment by 3rd Monday in August</p>
+                            </div>
+                            <div class="payment-option" data-option="installment">
+                                <h3>📅 Two Installments</h3>
+                                <p>50% in August, 50% in January</p>
+                            </div>
+                        </div>
+                        <input type="hidden" id="paymentOption" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="paymentDate">When are you paying?</label>
+                        <select id="paymentDate" required>
+                            <option value="">Select payment timing</option>
+                            <option value="ontime">On Time (by due date)</option>
+                            <option value="late30">30 days late</option>
+                            <option value="late60">60 days late</option>
+                            <option value="late90">90+ days late</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="calculate-btn">Calculate Payment Schedule & Costs</button>
+                </form>
+            </div>
+
+            <div id="results" class="results">
+                <h2 style="color: #2c5530; margin-bottom: 20px;">Your Henderson Property Tax Payment Plan</h2>
+                
+                <div class="total-summary">
+                    <h3>Total Amount Due</h3>
+                    <div class="total-amount" id="totalAmount">$0</div>
+                    <p>Including taxes, penalties, and interest</p>
+                </div>
+
+                <div class="payment-schedule">
+                    <div class="schedule-header">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px;">
+                            <span>Payment</span>
+                            <span>Due Date</span>
+                            <span>Amount</span>
+                            <span>Status</span>
+                        </div>
+                    </div>
+                    <div id="paymentScheduleDetails"></div>
+                </div>
+
+                <div class="penalty-info">
+                    <h4>⚠️ Late Payment Penalties & Interest</h4>
+                    <p><strong>10% Penalty:</strong> Applied immediately on late payments<br>
+                    <strong>1% Monthly Interest:</strong> 10% annual interest rate (approximately 0.83% per month)<br>
+                    <strong>Accumulating Costs:</strong> Penalties and interest compound monthly until paid</p>
+                </div>
+
+                <div class="payment-methods">
+                    <div class="payment-method">
+                        <h4>💻 Online Payment</h4>
+                        <div class="fee">E-Check: FREE</div>
+                        <div class="fee">Credit/Debit: ~2.5% fee</div>
+                        <p>24/7 access at Clark County Treasurer website</p>
+                    </div>
+                    
+                    <div class="payment-method">
+                        <h4>📞 Phone Payment</h4>
+                        <div class="fee">Service Fee: ~$3.95</div>
+                        <p>Call (702) 455-4323, option 1<br>Automated 24/7 system</p>
+                    </div>
+                    
+                    <div class="payment-method">
+                        <h4>✉️ Mail Payment</h4>
+                        <div class="fee">FREE (check/money order)</div>
+                        <p>Clark County Treasurer<br>500 S Grand Central Pkwy<br>Las Vegas, NV 89155</p>
+                    </div>
+                    
+                    <div class="payment-method">
+                        <h4>🏢 In-Person Payment</h4>
+                        <div class="fee">FREE (cash/check/card)</div>
+                        <p>Monday-Thursday: 7:30am-5:30pm<br>500 S Grand Central Pkwy</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <h3>Smart Payment Planning Tips</h3>
+                <p><strong>• Set Up Auto-Pay:</strong> Never miss deadlines with automatic payments<br>
+                <strong>• Budget Monthly:</strong> Save $250-400/month for property taxes<br>
+                <strong>• Use Escrow:</strong> Most mortgages include tax escrow management<br>
+                <strong>• Payment Timing:</strong> Make payments several days before due date for processing time</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Important dates for Henderson property tax payments
+        const paymentDates = {
+            firstInstallment: 'August 21, 2025', // 3rd Monday in August
+            secondInstallment: 'January 6, 2026', // 1st Monday in January
+            fullPayment: 'August 21, 2025'
+        };
+
+        // Payment option selection
+        document.querySelectorAll('.payment-option').forEach(option => {
+            option.addEventListener('click', function() {
+                // Remove selected class from all options
+                document.querySelectorAll('.payment-option').forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+                
+                // Add selected class to clicked option
+                this.classList.add('selected');
+                
+                // Set hidden input value
+                document.getElementById('paymentOption').value = this.dataset.option;
+            });
+        });
+
+        document.getElementById('paymentCalculator').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const annualTax = parseFloat(document.getElementById('annualTax').value);
+            const paymentOption = document.getElementById('paymentOption').value;
+            const paymentTiming = document.getElementById('paymentDate').value;
+            
+            if (!annualTax || !paymentOption || !paymentTiming) {
+                alert('Please complete all fields');
+                return;
+            }
+            
+            // Calculate penalties and interest based on timing
+            let penalty = 0;
+            let interest = 0;
+            
+            if (paymentTiming !== 'ontime') {
+                penalty = annualTax * 0.10; // 10% penalty
+                
+                // Calculate interest based on how late
+                if (paymentTiming === 'late30') {
+                    interest = annualTax * 0.0083; // ~1% for 30 days
+                } else if (paymentTiming === 'late60') {
+                    interest = annualTax * 0.0167; // ~2% for 60 days
+                } else if (paymentTiming === 'late90') {
+                    interest = annualTax * 0.025; // ~3% for 90+ days
+                }
+            }
+            
+            const totalAmount = annualTax + penalty + interest;
+            
+            // Display results
+            document.getElementById('totalAmount').textContent = '$' + Math.round(totalAmount).toLocaleString();
+            
+            // Generate payment schedule
+            let scheduleHTML = '';
+            
+            if (paymentOption === 'full') {
+                const status = paymentTiming === 'ontime' ? '✅ On Time' : '❌ Late Payment';
+                scheduleHTML = `
+                    <div class="schedule-row">
+                        <span>Full Payment</span>
+                        <span>${paymentDates.fullPayment}</span>
+                        <span>$${Math.round(totalAmount).toLocaleString()}</span>
+                        <span>${status}</span>
+                    </div>
+                `;
+            } else {
+                const firstInstallment = (annualTax / 2) + (penalty / 2) + (interest / 2);
+                const secondInstallment = (annualTax / 2) + (penalty / 2) + (interest / 2);
+                const status1 = paymentTiming === 'ontime' ? '✅ On Time' : '❌ Late Payment';
+                const status2 = '⏳ Upcoming';
+                
+                scheduleHTML = `
+                    <div class="schedule-row">
+                        <span>1st Installment</span>
+                        <span>${paymentDates.firstInstallment}</span>
+                        <span>$${Math.round(firstInstallment).toLocaleString()}</span>
+                        <span>${status1}</span>
+                    </div>
+                    <div class="schedule-row">
+                        <span>2nd Installment</span>
+                        <span>${paymentDates.secondInstallment}</span>
+                        <span>$${Math.round(secondInstallment).toLocaleString()}</span>
+                        <span>${status2}</span>
+                    </div>
+                `;
+            }
+            
+            // Add breakdown row
+            if (penalty > 0 || interest > 0) {
+                scheduleHTML += `
+                    <div class="schedule-row">
+                        <span>Base Tax: $${annualTax.toLocaleString()}</span>
+                        <span>Penalty: $${Math.round(penalty).toLocaleString()}</span>
+                        <span>Interest: $${Math.round(interest).toLocaleString()}</span>
+                        <span>Total: $${Math.round(totalAmount).toLocaleString()}</span>
+                    </div>
+                `;
+            }
+            
+            document.getElementById('paymentScheduleDetails').innerHTML = scheduleHTML;
+            
+            // Show results
+            document.getElementById('results').classList.add('show');
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+        });
+
+        // Format number inputs
+        document.getElementById('annualTax').addEventListener('input', function(e) {
+            // Allow decimal numbers for tax amounts
+            let value = e.target.value;
+            if (value && !isNaN(value)) {
+                // Ensure reasonable tax amount
+                if (parseFloat(value) > 100000) {
+                    e.target.value = '100000';
+                }
+            }
+        });
+    </script>
+</body>
+</html>
