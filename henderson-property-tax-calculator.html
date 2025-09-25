@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Henderson Nevada Property Tax Calculator 2025</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        .calculator-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .calculator-header {
+            background: linear-gradient(135deg, #2c5530 0%, #7ba05b 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .calculator-header h1 {
+            margin: 0;
+            font-size: 2.2em;
+            font-weight: bold;
+        }
+        .calculator-header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        .calculator-body {
+            padding: 40px;
+        }
+        .input-group {
+            margin-bottom: 25px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c5530;
+            font-size: 1.1em;
+        }
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e1e1;
+            border-radius: 8px;
+            font-size: 1.1em;
+            transition: border-color 0.3s ease;
+            box-sizing: border-box;
+        }
+        .input-group input:focus, .input-group select:focus {
+            border-color: #7ba05b;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(123, 160, 91, 0.1);
+        }
+        .calculate-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #2c5530 0%, #7ba05b 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.3em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin: 20px 0;
+        }
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(44, 85, 48, 0.3);
+        }
+        .results {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 30px;
+            border-radius: 10px;
+            margin-top: 30px;
+            display: none;
+        }
+        .results.show {
+            display: block;
+            animation: slideIn 0.5s ease;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #dee2e6;
+            font-size: 1.1em;
+        }
+        .result-item:last-child {
+            border-bottom: none;
+            font-weight: bold;
+            font-size: 1.3em;
+            color: #2c5530;
+        }
+        .result-label {
+            color: #495057;
+            font-weight: 500;
+        }
+        .result-value {
+            font-weight: bold;
+            color: #2c5530;
+        }
+        .info-box {
+            background: #e8f4f0;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 5px solid #7ba05b;
+        }
+        .info-box h3 {
+            margin: 0 0 10px 0;
+            color: #2c5530;
+        }
+        .info-box p {
+            margin: 0;
+            color: #495057;
+            line-height: 1.5;
+        }
+        .disclaimer {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        .tax-breakdown {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 2px solid #e9ecef;
+        }
+        .breakdown-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 1em;
+        }
+        .breakdown-total {
+            border-top: 2px solid #7ba05b;
+            margin-top: 10px;
+            padding-top: 10px;
+            font-weight: bold;
+            color: #2c5530;
+        }
+        @media (max-width: 768px) {
+            .calculator-body {
+                padding: 20px;
+            }
+            .calculator-header {
+                padding: 20px;
+            }
+            .calculator-header h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator-container">
+        <div class="calculator-header">
+            <h1>💰 Henderson Property Tax Calculator</h1>
+            <p>Calculate your estimated Henderson property taxes with Nevada's 35% assessment ratio</p>
+        </div>
+        
+        <div class="calculator-body">
+            <div class="info-box">
+                <h3>How Henderson Property Taxes Work</h3>
+                <p>Nevada assesses property at 35% of market value, then applies local tax rates. Henderson homeowners with primary residences receive 3% annual increase caps, making taxes very predictable.</p>
+            </div>
+
+            <form id="taxCalculator">
+                <div class="input-group">
+                    <label for="homeValue">Estimated Home Value ($)</label>
+                    <input type="number" id="homeValue" placeholder="Enter home value (e.g., 450000)" min="50000" max="5000000" step="1000" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="propertyType">Property Type</label>
+                    <select id="propertyType" required>
+                        <option value="">Select property type</option>
+                        <option value="primary">Primary Residence (3% cap)</option>
+                        <option value="secondary">Second Home (8% cap)</option>
+                        <option value="investment">Investment Property (8% cap)</option>
+                        <option value="commercial">Commercial Property</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label for="zipCode">Henderson Zip Code</label>
+                    <select id="zipCode" required>
+                        <option value="">Select zip code</option>
+                        <option value="89002">89002 - Green Valley South (0.74% rate)</option>
+                        <option value="89011">89011 - Henderson Hills (1.06% rate)</option>
+                        <option value="89012">89012 - Green Valley (0.83% rate)</option>
+                        <option value="89014">89014 - Henderson Central (0.82% rate)</option>
+                        <option value="89015">89015 - Henderson West (0.73% rate)</option>
+                        <option value="89044">89044 - Seven Hills (1.00% rate)</option>
+                        <option value="89052">89052 - Green Valley Ranch (0.88% rate)</option>
+                        <option value="89074">89074 - Henderson East (0.83% rate)</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label for="exemptions">Apply Exemptions</label>
+                    <select id="exemptions">
+                        <option value="none">No exemptions</option>
+                        <option value="senior">Senior Citizen (Age 62+)</option>
+                        <option value="disabled">Disabled Person</option>
+                        <option value="veteran">Disabled Veteran</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="calculate-btn">Calculate My Henderson Property Taxes</button>
+            </form>
+
+            <div id="results" class="results">
+                <h2 style="color: #2c5530; margin-bottom: 20px;">Your Henderson Property Tax Estimate</h2>
+                
+                <div class="tax-breakdown">
+                    <h3 style="margin-bottom: 15px; color: #2c5530;">Tax Calculation Breakdown</h3>
+                    <div class="breakdown-item">
+                        <span>Market Value:</span>
+                        <span id="marketValue">$0</span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span>Assessed Value (35%):</span>
+                        <span id="assessedValue">$0</span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span>Effective Tax Rate:</span>
+                        <span id="effectiveRate">0.00%</span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span>Exemption Reduction:</span>
+                        <span id="exemptionAmount">$0</span>
+                    </div>
+                    <div class="breakdown-item breakdown-total">
+                        <span>Annual Property Tax:</span>
+                        <span id="annualTax">$0</span>
+                    </div>
+                </div>
+
+                <div class="result-item">
+                    <span class="result-label">Monthly Escrow Payment:</span>
+                    <span class="result-value" id="monthlyPayment">$0</span>
+                </div>
+
+                <div class="result-item">
+                    <span class="result-label">Tax Per Square Foot (2,000 sq ft):</span>
+                    <span class="result-value" id="perSquareFoot">$0</span>
+                </div>
+
+                <div class="result-item">
+                    <span class="result-label">Tax as % of Home Value:</span>
+                    <span class="result-value" id="percentageOfValue">0.00%</span>
+                </div>
+
+                <div class="result-item">
+                    <span class="result-label">With 3% Annual Cap Protection:</span>
+                    <span class="result-value" id="capProtection">Maximum 3% yearly increase</span>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <h3>Henderson Property Tax Advantages</h3>
+                <p><strong>• 35% Assessment Ratio:</strong> Only 35% of your home's value is taxed<br>
+                <strong>• 3% Annual Cap:</strong> Primary residence taxes can only increase 3% per year<br>
+                <strong>• Multiple Exemptions:</strong> Senior, disabled, and veteran exemptions available<br>
+                <strong>• Below National Average:</strong> Henderson taxes typically 25-30% below U.S. median</p>
+            </div>
+
+            <div class="disclaimer">
+                <strong>Disclaimer:</strong> This calculator provides estimates based on current tax rates and assessment procedures. Actual taxes may vary due to assessment changes, special districts, and exemption eligibility. Consult with Henderson real estate professionals for precise calculations and tax planning advice.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tax rate data by zip code
+        const taxRates = {
+            '89002': 0.0074, // 0.74%
+            '89011': 0.0106, // 1.06%
+            '89012': 0.0083, // 0.83%
+            '89014': 0.0082, // 0.82%
+            '89015': 0.0073, // 0.73%
+            '89044': 0.0100, // 1.00%
+            '89052': 0.0088, // 0.88%
+            '89074': 0.0083  // 0.83%
+        };
+
+        // Exemption amounts (approximate)
+        const exemptions = {
+            'none': 0,
+            'senior': 10000,    // Approximate senior exemption
+            'disabled': 12000,  // Approximate disabled exemption
+            'veteran': 15000    // Approximate veteran exemption
+        };
+
+        document.getElementById('taxCalculator').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const homeValue = parseFloat(document.getElementById('homeValue').value);
+            const propertyType = document.getElementById('propertyType').value;
+            const zipCode = document.getElementById('zipCode').value;
+            const exemptionType = document.getElementById('exemptions').value;
+            
+            if (!homeValue || !propertyType || !zipCode) {
+                alert('Please fill in all required fields');
+                return;
+            }
+            
+            // Calculate taxes
+            const taxRate = taxRates[zipCode];
+            const assessedValue = homeValue * 0.35; // 35% assessment ratio
+            const exemptionAmount = exemptions[exemptionType];
+            const taxableValue = Math.max(0, assessedValue - exemptionAmount);
+            const annualTax = taxableValue * taxRate;
+            const monthlyPayment = annualTax / 12;
+            const perSquareFoot = annualTax / 2000; // Assuming 2000 sq ft
+            const percentageOfValue = (annualTax / homeValue) * 100;
+            
+            // Display results
+            document.getElementById('marketValue').textContent = '$' + homeValue.toLocaleString();
+            document.getElementById('assessedValue').textContent = '$' + assessedValue.toLocaleString();
+            document.getElementById('effectiveRate').textContent = (taxRate * 100).toFixed(2) + '%';
+            document.getElementById('exemptionAmount').textContent = '$' + exemptionAmount.toLocaleString();
+            document.getElementById('annualTax').textContent = '$' + Math.round(annualTax).toLocaleString();
+            document.getElementById('monthlyPayment').textContent = '$' + Math.round(monthlyPayment).toLocaleString();
+            document.getElementById('perSquareFoot').textContent = '$' + perSquareFoot.toFixed(2);
+            document.getElementById('percentageOfValue').textContent = percentageOfValue.toFixed(2) + '%';
+            
+            // Cap protection message
+            const capProtection = propertyType === 'primary' ? 'Maximum 3% yearly increase' : 
+                                 (propertyType === 'secondary' || propertyType === 'investment') ? 'Maximum 8% yearly increase' : 
+                                 'No cap protection';
+            document.getElementById('capProtection').textContent = capProtection;
+            
+            // Show results
+            document.getElementById('results').classList.add('show');
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+        });
+
+        // Format number inputs
+        document.getElementById('homeValue').addEventListener('input', function(e) {
+            // Remove any non-digits
+            let value = e.target.value.replace(/\D/g, '');
+            // Add commas for readability
+            e.target.value = value;
+        });
+    </script>
+</body>
+</html>
